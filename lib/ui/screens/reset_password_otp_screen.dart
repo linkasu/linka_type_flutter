@@ -172,6 +172,8 @@ class _ResetPasswordOTPScreenState extends State<ResetPasswordOTPScreen> {
                         controller: _otpController,
                         keyboardType: TextInputType.number,
                         maxLength: 6,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _verifyOTP(),
                         decoration: const InputDecoration(
                           labelText: 'Код подтверждения',
                           prefixIcon: Icon(Icons.security),

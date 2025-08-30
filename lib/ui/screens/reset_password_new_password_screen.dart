@@ -152,6 +152,7 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.next,
                         decoration: InputDecoration(
                           labelText: 'Новый пароль',
                           prefixIcon: const Icon(Icons.lock),
@@ -185,6 +186,8 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _resetPassword(),
                         decoration: InputDecoration(
                           labelText: 'Подтвердите пароль',
                           prefixIcon: const Icon(Icons.lock_outline),

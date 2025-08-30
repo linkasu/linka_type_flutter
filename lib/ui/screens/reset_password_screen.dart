@@ -131,6 +131,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _requestReset(),
                         decoration: const InputDecoration(
                           labelText: 'Email',
                           prefixIcon: Icon(Icons.email),

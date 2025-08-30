@@ -40,33 +40,34 @@ class AuthService {
   }
 
   Future<void> requestPasswordReset(String email) async {
-    // TODO: Реализовать на сервере
-    // Временно возвращаем успех для демонстрации UI
-    await Future.delayed(const Duration(seconds: 1));
-    // throw ApiException(
-    //   statusCode: 501,
-    //   message: 'Функциональность сброса пароля пока не реализована на сервере',
-    // );
+    try {
+      final request = ResetPasswordRequest(email: email);
+      await _apiClient.post('/auth/reset-password', body: request.toJson());
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> verifyPasswordResetOTP(String email, String code) async {
-    // TODO: Реализовать на сервере
-    // Временно возвращаем успех для демонстрации UI
-    await Future.delayed(const Duration(seconds: 1));
-    // throw ApiException(
-    //   statusCode: 501,
-    //   message: 'Функциональность сброса пароля пока не реализована на сервере',
-    // );
+    try {
+      final request = ResetPasswordVerifyRequest(email: email, code: code);
+      await _apiClient.post('/auth/reset-password/verify', body: request.toJson());
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> confirmPasswordReset(String email, String code, String newPassword) async {
-    // TODO: Реализовать на сервере
-    // Временно возвращаем успех для демонстрации UI
-    await Future.delayed(const Duration(seconds:1));
-    // throw ApiException(
-    //   statusCode: 501,
-    //   message: 'Функциональность сброса пароля пока не реализована на сервере',
-    // );
+    try {
+      final request = ResetPasswordConfirmRequest(
+        email: email,
+        code: code,
+        password: newPassword,
+      );
+      await _apiClient.post('/auth/reset-password/confirm', body: request.toJson());
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> logout() async {

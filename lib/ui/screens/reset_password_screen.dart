@@ -1,58 +1,54 @@
 import 'package:flutter/material.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
-import 'home_screen.dart';
-import 'reset_password_screen.dart';
+import 'reset_password_otp_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class ResetPasswordScreen extends StatefulWidget {
+  const ResetPasswordScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
   final _authService = AuthService();
   
   bool _isLoading = false;
-  bool _obscurePassword = true;
   String? _errorMessage;
+  String? _successMessage;
 
   @override
   void dispose() {
     _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _requestReset() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _successMessage = null;
     });
 
     try {
-      final response = await _authService.login(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+      await _authService.requestPasswordReset(_emailController.text.trim());
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Добро пожаловать, ${response.user.email}!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        setState(() {
+          _successMessage = 'Код подтверждения отправлен на ваш email';
+        });
         
-        // Переход на главный экран
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        // Переход на экран ввода OTP
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ResetPasswordOTPScreen(
+              email: _emailController.text.trim(),
+            ),
+          ),
         );
       }
     } on ApiException catch (e) {
@@ -74,10 +70,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String _getErrorMessage(int statusCode) {
     switch (statusCode) {
-      case 401:
-        return 'Неверный email или пароль';
+      case 404:
+        return 'Пользователь с таким email не найден';
       case 400:
-        return 'Неверный формат данных';
+        return 'Неверный формат email';
+      case 429:
+        return 'Слишком много запросов. Попробуйте позже';
       case 500:
         return 'Ошибка сервера';
       default:
@@ -88,6 +86,11 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Сброс пароля'),
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -100,18 +103,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Логотип или заголовок
                       const Icon(
-                        Icons.account_circle,
+                        Icons.lock_reset,
                         size: 80,
                         color: AppTheme.primaryColor,
                       ),
                       const SizedBox(height: 24),
                       const Text(
-                        'Вход в систему',
+                        'Сброс пароля',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Введите ваш email для получения кода подтверждения',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -134,36 +145,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
-                      
-                      // Пароль поле
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        decoration: InputDecoration(
-                          labelText: 'Пароль',
-                          prefixIcon: const Icon(Icons.lock),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Введите пароль';
-                          }
-                          if (value.length < 6) {
-                            return 'Пароль должен содержать минимум 6 символов';
-                          }
-                          return null;
-                        },
-                      ),
                       const SizedBox(height: 24),
                       
                       // Сообщение об ошибке
@@ -171,8 +152,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
-                                                     decoration: BoxDecoration(
-                             color: AppTheme.errorColor.withValues(alpha: 0.1),
+                          decoration: BoxDecoration(
+                            color: AppTheme.errorColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: AppTheme.errorColor),
                           ),
@@ -185,11 +166,30 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 16),
                       ],
                       
-                      // Кнопка входа
+                      // Сообщение об успехе
+                      if (_successMessage != null) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green),
+                          ),
+                          child: Text(
+                            _successMessage!,
+                            style: const TextStyle(color: Colors.green),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      
+                      // Кнопка отправки
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _isLoading ? null : _login,
+                          onPressed: _isLoading ? null : _requestReset,
                           child: _isLoading
                               ? const SizedBox(
                                   height: 20,
@@ -199,33 +199,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                   ),
                                 )
-                              : const Text('Войти'),
+                              : const Text('Отправить код'),
                         ),
                       ),
                       const SizedBox(height: 16),
                       
-                      // Ссылки
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              // TODO: Переход на экран регистрации
-                              // Navigator.of(context).push(
-                              //   MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                              // );
-                            },
-                            child: const Text('Регистрация'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => const ResetPasswordScreen()),
-                              );
-                            },
-                            child: const Text('Забыли пароль?'),
-                          ),
-                        ],
+                      // Кнопка возврата
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Вернуться к входу'),
                       ),
                     ],
                   ),

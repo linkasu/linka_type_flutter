@@ -117,7 +117,7 @@ class _PhraseBankState extends State<PhraseBank> {
         final statementCount = widget.statements.where((s) => s.categoryId == category.id).length;
         
         return Card(
-          child: InkWell(
+          child: GestureDetector(
             onTap: () {
               setState(() {
                 _selectedCategory = category;
@@ -125,6 +125,7 @@ class _PhraseBankState extends State<PhraseBank> {
               });
             },
             onLongPress: () => _showCategoryContextMenu(context, category),
+            onSecondaryTapDown: (details) => _showCategoryContextMenu(context, category),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -187,7 +188,7 @@ class _PhraseBankState extends State<PhraseBank> {
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 1.5,
+        childAspectRatio: 4.5,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
@@ -195,37 +196,21 @@ class _PhraseBankState extends State<PhraseBank> {
       itemBuilder: (context, index) {
         final statement = statements[index];
         
-        return Card(
-          child: InkWell(
-            onTap: () => widget.onSayStatement(statement),
-            onLongPress: () => _showStatementContextMenu(context, statement),
+        return GestureDetector(
+          onTap: () => widget.onSayStatement(statement),
+          onLongPress: () => _showStatementContextMenu(context, statement),
+          onSecondaryTapDown: (details) => _showStatementContextMenu(context, statement),
+          child: Card(
             child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      statement.title,
-                      style: const TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 3,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Icon(Icons.play_arrow, size: 16, color: AppTheme.primaryColor),
-                      const Spacer(),
-                      Text(
-                        'Нажмите для воспроизведения',
-                        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ],
+              padding: const EdgeInsets.all(8),
+              child: Center(
+                child: Text(
+                  statement.title,
+                  style: const TextStyle(fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
           ),

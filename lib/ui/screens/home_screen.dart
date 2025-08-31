@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../api/api.dart';
 import '../../services/tts_service.dart';
 import '../theme/app_theme.dart';
-import 'login_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,7 +12,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final AuthService _authService = AuthService();
   final TTSService _ttsService = TTSService.instance;
   final TextEditingController _textController = TextEditingController();
   bool _hasText = false;
@@ -23,15 +20,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _textController.addListener(_onTextChanged);
-  }
-
-  Future<void> _logout() async {
-    await _authService.logout();
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
-    }
   }
 
   Future<void> _sayText({bool download = false}) async {
@@ -59,10 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
           ),
         ],
       ),

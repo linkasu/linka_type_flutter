@@ -23,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   List<YandexVoice> _yandexVoices = [];
   bool _isLoading = true;
   String? _lastError;
+  String _ttsStatus = 'Готов';
   
   @override
   void initState() {
@@ -60,8 +61,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _ttsService.events.listen((event) {
       if (mounted) {
         setState(() {
-          if (event.startsWith('error:')) {
+          if (event == 'start') {
+            _ttsStatus = 'Говорит...';
+            _lastError = null;
+          } else if (event == 'end') {
+            _ttsStatus = 'Готов';
+            _lastError = null;
+          } else if (event.startsWith('error:')) {
             _lastError = event.substring(6);
+            _ttsStatus = 'Ошибка: $_lastError';
           }
         });
       }
@@ -89,32 +97,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                                                     Row(
-                             children: [
-                               const Icon(Icons.volume_up, color: AppTheme.primaryColor),
-                               const SizedBox(width: 8),
-                               Expanded(
-                                 child: Text(
-                                   'Настройки TTS',
-                                   style: Theme.of(context).textTheme.titleLarge,
-                                 ),
-                               ),
-                               if (_lastError != null)
-                                 IconButton(
-                                   icon: const Icon(Icons.copy, size: 20),
-                                   onPressed: () {
-                                     Clipboard.setData(ClipboardData(text: _lastError!));
-                                     ScaffoldMessenger.of(context).showSnackBar(
-                                       const SnackBar(
-                                         content: Text('Ошибка скопирована в буфер обмена'),
-                                         duration: Duration(seconds: 2),
-                                       ),
-                                     );
-                                   },
-                                   tooltip: 'Копировать ошибку',
-                                 ),
-                             ],
-                           ),
+                                                                               Row(
+                            children: [
+                              const Icon(Icons.volume_up, color: AppTheme.primaryColor),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Настройки TTS',
+                                      style: Theme.of(context).textTheme.titleLarge,
+                                    ),
+                                    Text(
+                                      'Статус: $_ttsStatus',
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: AppTheme.textSecondaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (_lastError != null)
+                                IconButton(
+                                  icon: const Icon(Icons.copy, size: 20),
+                                  onPressed: () {
+                                    Clipboard.setData(ClipboardData(text: _lastError!));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Ошибка скопирована в буфер обмена'),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  },
+                                  tooltip: 'Копировать ошибку',
+                                ),
+                            ],
+                          ),
                           const SizedBox(height: 16),
                           
                           // Отображение ошибки
@@ -296,7 +315,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   
                   const SizedBox(height: 16),
                   
-                  // Тест TTS
+                  // Управление TTS
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -304,7 +323,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Тест настроек',
+                            'Управление TTS',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 16),
@@ -329,6 +348,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red,
                                   foregroundColor: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _ttsService.playLastAudio(),
+                                  icon: const Icon(Icons.play_arrow),
+                                  label: const Text('Воспроизвести последнее'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                  ),
                                 ),
                               ),
                             ],

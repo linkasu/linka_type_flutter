@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:io';
 import '../../services/tts_service.dart';
 import '../theme/app_theme.dart';
 
@@ -154,26 +155,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             const SizedBox(height: 16),
                           ],
                           
-                          // Информация о режиме
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(8),
+                          // Переключатель режима TTS (скрыт на Linux)
+                          if (!Platform.isLinux)
+                            SwitchListTile(
+                              title: const Text('Использовать Яндекс TTS'),
+                              subtitle: const Text('Онлайн режим с высоким качеством'),
+                              value: _useYandex,
+                              onChanged: (value) async {
+                                await _ttsService.setUseYandex(value);
+                                setState(() {
+                                  _useYandex = value;
+                                });
+                              },
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.info_outline, color: Colors.blue),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Используется онлайн режим с Яндекс TTS',
-                                    style: TextStyle(color: Colors.blue.shade700),
+                          if (Platform.isLinux)
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.info_outline, color: Colors.blue),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'На Linux используется только Яндекс TTS',
+                                      style: TextStyle(color: Colors.blue.shade700),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
                           
                           const SizedBox(height: 16),
                           
@@ -184,21 +198,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
-                            value: _selectedVoice.isNotEmpty ? _selectedVoice : null,
+                            value: _selectedVoice.isNotEmpty && ((_useYandex || Platform.isLinux) ? _yandexVoices.any((v) => v.voiceURI == _selectedVoice) : _offlineVoices.any((v) => v.voiceURI == _selectedVoice)) ? _selectedVoice : null,
                             decoration: const InputDecoration(
                               labelText: 'Выберите голос',
                               border: OutlineInputBorder(),
                             ),
-                                                         items: [
-                               const DropdownMenuItem(
-                                 value: '',
-                                 child: Text('Яндекс голоса'),
-                               ),
-                               ..._yandexVoices.map((voice) => DropdownMenuItem(
-                                 value: voice.voiceURI,
-                                 child: Text(voice.text),
-                               )),
-                             ],
+                            items: [
+                              if (_useYandex || Platform.isLinux) ...[
+                                const DropdownMenuItem(
+                                  value: '',
+                                  child: Text('Яндекс голоса'),
+                                ),
+                                ..._yandexVoices.map((voice) => DropdownMenuItem(
+                                  value: voice.voiceURI,
+                                  child: Text('${voice.text} (Яндекс)'),
+                                )),
+                              ] else ...[
+                                const DropdownMenuItem(
+                                  value: '',
+                                  child: Text('Системные голоса'),
+                                ),
+                                ..._offlineVoices.map((voice) => DropdownMenuItem(
+                                  value: voice.voiceURI,
+                                  child: Text('${voice.text} (Системный)'),
+                                )),
+                              ],
+                            ].where((item) => item.value == null || item.value!.isNotEmpty).toList(),
                             onChanged: (value) async {
                               if (value != null && value.isNotEmpty) {
                                 await _ttsService.setVoice(value);

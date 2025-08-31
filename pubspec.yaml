@@ -52,6 +52,9 @@ dependencies:
   
   # Audio playback with Linux support
   audioplayers: ^6.5.0
+  
+  # Native TTS for Android, iOS, Windows
+  flutter_tts: ^3.8.5
 
 dev_dependencies:
   flutter_test:

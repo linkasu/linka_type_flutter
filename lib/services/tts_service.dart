@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,6 +51,7 @@ class TTSService {
   bool _useYandex = true; // По умолчанию используем Яндекс
   TTSVoice? _currentVoice;
   AudioPlayer? _audioPlayer;
+  FlutterTts? _flutterTts;
   
   TTSService._() {
     _init();
@@ -66,6 +68,31 @@ class TTSService {
     // Инициализируем AudioPlayer
     _audioPlayer = AudioPlayer();
     
+    // Инициализируем FlutterTts для нативного TTS (только для поддерживаемых платформ)
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isWindows || Platform.isMacOS)) {
+      _flutterTts = FlutterTts();
+      
+      // Настраиваем FlutterTts
+      await _flutterTts?.setLanguage("ru-RU");
+      await _flutterTts?.setSpeechRate(await getRate());
+      await _flutterTts?.setVolume(await getVolume());
+      await _flutterTts?.setPitch(await getPitch());
+      
+      // Устанавливаем обработчики событий
+      _flutterTts?.setStartHandler(() {
+        _eventController.add('start');
+      });
+      
+      _flutterTts?.setCompletionHandler(() {
+        _eventController.add('end');
+      });
+      
+      _flutterTts?.setErrorHandler((msg) {
+        _lastError = msg;
+        _eventController.add('error: $msg');
+      });
+    }
+    
     _isInitialized = true;
   }
   
@@ -74,8 +101,25 @@ class TTSService {
     
     await _init();
     
-    // Всегда используем Яндекс TTS для Linux
-    await _yandexSay(text, download: download);
+    if (download) {
+      // Для скачивания всегда используем Яндекс TTS
+      await _yandexSay(text, download: true);
+    } else if (_useYandex || Platform.isLinux) {
+      // Используем Яндекс TTS если включен или на Linux
+      await _yandexSay(text, download: false);
+    } else {
+      // Используем нативный TTS
+      await _nativeSay(text);
+    }
+  }
+  
+  Future<void> _nativeSay(String text) async {
+    try {
+      await _flutterTts?.speak(text);
+    } catch (e) {
+      _lastError = e.toString();
+      _eventController.add('error: $e');
+    }
   }
   
   Future<void> _yandexSay(String text, {bool download = false}) async {
@@ -153,7 +197,11 @@ class TTSService {
   
   Future<void> stop() async {
     try {
-      await _audioPlayer?.stop();
+      if (_useYandex) {
+        await _audioPlayer?.stop();
+      } else {
+        await _flutterTts?.stop();
+      }
       _eventController.add('end');
     } catch (e) {
       print('Ошибка остановки: $e');
@@ -202,6 +250,7 @@ class TTSService {
   
   Future<void> setVolume(double volume) async {
     await _prefs.setDouble('volume', volume);
+    await _flutterTts?.setVolume(volume);
   }
   
   // Rate
@@ -211,6 +260,7 @@ class TTSService {
   
   Future<void> setRate(double rate) async {
     await _prefs.setDouble('rate', rate);
+    await _flutterTts?.setSpeechRate(rate);
   }
   
   // Pitch
@@ -220,6 +270,7 @@ class TTSService {
   
   Future<void> setPitch(double pitch) async {
     await _prefs.setDouble('pitch', pitch);
+    await _flutterTts?.setPitch(pitch);
   }
   
   // Yandex mode
@@ -235,22 +286,38 @@ class TTSService {
   // Voice selection
   Future<void> setVoice(String voiceURI) async {
     final yandexVoices = getYandexVoices();
+    final offlineVoices = await getOfflineVoices();
     
     TTSVoice? selectedVoice;
     
     try {
+      // Сначала ищем в Яндекс голосах
       final yandexVoice = yandexVoices.firstWhere((v) => v.voiceURI == voiceURI);
       selectedVoice = TTSVoice(
         voiceURI: yandexVoice.voiceURI,
         text: yandexVoice.text,
       );
     } catch (e) {
-      // Если голос не найден, используем первый доступный
-      final firstYandex = yandexVoices.first;
-      selectedVoice = TTSVoice(
-        voiceURI: firstYandex.voiceURI,
-        text: firstYandex.text,
-      );
+      try {
+        // Затем ищем в офлайн голосах
+        final offlineVoice = offlineVoices.firstWhere((v) => v.voiceURI == voiceURI);
+        selectedVoice = offlineVoice;
+        
+        // Устанавливаем голос в FlutterTts
+        await _flutterTts?.setVoice({"name": voiceURI, "locale": offlineVoice.locale ?? "ru-RU"});
+      } catch (e2) {
+        // Если голос не найден, используем первый доступный
+        if (yandexVoices.isNotEmpty) {
+          final firstYandex = yandexVoices.first;
+          selectedVoice = TTSVoice(
+            voiceURI: firstYandex.voiceURI,
+            text: firstYandex.text,
+          );
+        } else if (offlineVoices.isNotEmpty) {
+          selectedVoice = offlineVoices.first;
+          await _flutterTts?.setVoice({"name": selectedVoice.voiceURI, "locale": selectedVoice.locale ?? "ru-RU"});
+        }
+      }
     }
     
     if (selectedVoice != null) {
@@ -261,26 +328,65 @@ class TTSService {
   
   Future<TTSVoice> getSelectedVoice() async {
     final yandexVoices = getYandexVoices();
+    final offlineVoices = await getOfflineVoices();
     final savedURI = _prefs.getString('voiceuri') ?? 'zahar';
     
     try {
+      // Сначала ищем в Яндекс голосах
       final yandexVoice = yandexVoices.firstWhere((v) => v.voiceURI == savedURI);
       return TTSVoice(
         voiceURI: yandexVoice.voiceURI,
         text: yandexVoice.text,
       );
     } catch (e) {
-      final firstYandex = yandexVoices.first;
-      return TTSVoice(
-        voiceURI: firstYandex.voiceURI,
-        text: firstYandex.text,
-      );
+      try {
+        // Затем ищем в офлайн голосах
+        final offlineVoice = offlineVoices.firstWhere((v) => v.voiceURI == savedURI);
+        return offlineVoice;
+      } catch (e2) {
+        // Если не найден, возвращаем первый доступный
+        if (yandexVoices.isNotEmpty) {
+          final firstYandex = yandexVoices.first;
+          return TTSVoice(
+            voiceURI: firstYandex.voiceURI,
+            text: firstYandex.text,
+          );
+        } else if (offlineVoices.isNotEmpty) {
+          return offlineVoices.first;
+        } else {
+          // Fallback
+          return TTSVoice(
+            voiceURI: 'default',
+            text: 'По умолчанию',
+          );
+        }
+      }
     }
   }
   
   Future<List<TTSVoice>> getOfflineVoices() async {
-    // Для Linux возвращаем пустой список, так как используем только онлайн
-    return [];
+    // Для Linux возвращаем пустой список
+    if (Platform.isLinux) return [];
+    
+    try {
+      if (_flutterTts == null) return [];
+      
+      final voices = await _flutterTts!.getVoices;
+      if (voices == null) return [];
+      
+      return voices.map((voice) {
+        final Map<String, dynamic> voiceMap = voice as Map<String, dynamic>;
+        return TTSVoice(
+          voiceURI: voiceMap['name'] ?? '',
+          text: voiceMap['name'] ?? '',
+          locale: voiceMap['locale'] ?? '',
+          isDefault: voiceMap['default'] ?? false,
+        );
+      }).toList();
+    } catch (e) {
+      print('Ошибка получения офлайн голосов: $e');
+      return [];
+    }
   }
   
   List<YandexVoice> getYandexVoices() {
@@ -296,12 +402,28 @@ class TTSService {
   }
   
   Future<TTSVoice?> getDefaultOfflineVoice() async {
-    // Для Linux возвращаем null
-    return null;
+    try {
+      if (_flutterTts == null) return null;
+      
+      final voices = await getOfflineVoices();
+      if (voices.isEmpty) return null;
+      
+      // Ищем голос по умолчанию или берем первый
+      final defaultVoice = voices.firstWhere(
+        (voice) => voice.isDefault,
+        orElse: () => voices.first,
+      );
+      
+      return defaultVoice;
+    } catch (e) {
+      print('Ошибка получения голоса по умолчанию: $e');
+      return null;
+    }
   }
   
   void dispose() {
     _eventController.close();
     _audioPlayer?.dispose();
+    _flutterTts?.stop();
   }
 }

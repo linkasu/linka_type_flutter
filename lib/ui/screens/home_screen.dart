@@ -83,10 +83,84 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _editStatement(Statement statement) async {
-    // TODO: Реализовать редактирование фразы
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Функция редактирования фразы будет реализована позже')),
+    final TextEditingController titleController = TextEditingController(text: statement.title);
+    String? selectedCategoryId = statement.categoryId;
+    
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Редактировать фразу'),
+        content: StatefulBuilder(
+          builder: (context, setState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Текст фразы',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedCategoryId,
+                decoration: const InputDecoration(
+                  labelText: 'Категория',
+                  border: OutlineInputBorder(),
+                ),
+                items: _categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category.id,
+                    child: Text(category.title),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedCategoryId = value;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (titleController.text.trim().isNotEmpty && selectedCategoryId != null) {
+                Navigator.of(context).pop({
+                  'title': titleController.text.trim(),
+                  'categoryId': selectedCategoryId!,
+                });
+              }
+            },
+            child: const Text('Сохранить'),
+          ),
+        ],
+      ),
     );
+
+    if (result != null) {
+      try {
+        await _dataService.updateStatement(statement.id, result['title']!, result['categoryId']!);
+        await _loadData(); // Перезагружаем данные
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Фраза обновлена')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка обновления: $e')),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _deleteStatement(Statement statement) async {
@@ -129,10 +203,54 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _editCategory(Category category) async {
-    // TODO: Реализовать редактирование категории
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Функция редактирования категории будет реализована позже')),
+    final TextEditingController titleController = TextEditingController(text: category.title);
+    
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Редактировать категорию'),
+        content: TextField(
+          controller: titleController,
+          decoration: const InputDecoration(
+            labelText: 'Название категории',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (titleController.text.trim().isNotEmpty) {
+                Navigator.of(context).pop(titleController.text.trim());
+              }
+            },
+            child: const Text('Сохранить'),
+          ),
+        ],
+      ),
     );
+
+    if (result != null) {
+      try {
+        await _dataService.updateCategory(category.id, result);
+        await _loadData(); // Перезагружаем данные
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Категория обновлена')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка обновления: $e')),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _deleteCategory(Category category) async {
@@ -175,10 +293,92 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _addStatement() async {
-    // TODO: Реализовать добавление фразы
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Функция добавления фразы будет реализована позже')),
+    if (_categories.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Сначала создайте категорию в настройках')),
+      );
+      return;
+    }
+
+    final TextEditingController titleController = TextEditingController();
+    String? selectedCategoryId = _categories.first.id;
+    
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Добавить фразу'),
+        content: StatefulBuilder(
+          builder: (context, setState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Текст фразы',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+                autofocus: true,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedCategoryId,
+                decoration: const InputDecoration(
+                  labelText: 'Категория',
+                  border: OutlineInputBorder(),
+                ),
+                items: _categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category.id,
+                    child: Text(category.title),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedCategoryId = value;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (titleController.text.trim().isNotEmpty && selectedCategoryId != null) {
+                Navigator.of(context).pop({
+                  'title': titleController.text.trim(),
+                  'categoryId': selectedCategoryId!,
+                });
+              }
+            },
+            child: const Text('Добавить'),
+          ),
+        ],
+      ),
     );
+
+    if (result != null) {
+      try {
+        await _dataService.createStatement(result['title']!, result['categoryId']!);
+        await _loadData(); // Перезагружаем данные
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Фраза добавлена')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка добавления: $e')),
+          );
+        }
+      }
+    }
   }
 
   @override

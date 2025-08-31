@@ -46,6 +46,12 @@ dependencies:
   
   # WebSocket for real-time updates
   web_socket_channel: ^2.4.0
+  
+  # File operations
+  path_provider: ^2.1.1
+  
+  # Audio playback with Linux support
+  audioplayers: ^6.5.0
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +67,9 @@ dev_dependencies:
   # JSON serialization code generation
   json_serializable: ^6.7.1
   build_runner: ^2.4.7
+  
+  # Testing dependencies
+  mockito: ^5.4.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

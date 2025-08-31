@@ -24,6 +24,7 @@ class _AuthCheckerState extends State<AuthChecker> {
   Future<void> _checkAuthStatus() async {
     try {
       final isLoggedIn = await _authService.isLoggedIn();
+      
       setState(() {
         _isLoggedIn = isLoggedIn;
         _isLoading = false;

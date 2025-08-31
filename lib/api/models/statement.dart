@@ -5,10 +5,11 @@ part 'statement.g.dart';
 @JsonSerializable()
 class Statement {
   final String id;
+  @JsonKey(name: 'text')
   final String title;
-  @JsonKey(name: 'user_id')
+  @JsonKey(name: 'userId')
   final String userId;
-  @JsonKey(name: 'category_id')
+  @JsonKey(name: 'categoryId')
   final String categoryId;
 
   Statement({

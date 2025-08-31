@@ -13,6 +13,9 @@ class AuthService {
       final loginResponse = LoginResponse.fromJson(response);
       
       await TokenManager.saveToken(loginResponse.token);
+      if (loginResponse.refreshToken != null && loginResponse.refreshToken!.isNotEmpty) {
+        await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
+      }
       await TokenManager.saveUserInfo(loginResponse.user.id, loginResponse.user.email);
       
       return loginResponse;
@@ -88,5 +91,28 @@ class AuthService {
 
   Future<String?> getUserEmail() async {
     return await TokenManager.getUserEmail();
+  }
+
+  Future<LoginResponse> refreshToken() async {
+    try {
+      final refreshToken = await TokenManager.getRefreshToken();
+      if (refreshToken == null) {
+        throw Exception('No refresh token available');
+      }
+
+      final request = RefreshTokenRequest(refreshToken: refreshToken);
+      final response = await _apiClient.post('/refresh', body: request.toJson());
+      
+      final loginResponse = LoginResponse.fromJson(response);
+      
+      await TokenManager.saveToken(loginResponse.token);
+      if (loginResponse.refreshToken != null && loginResponse.refreshToken!.isNotEmpty) {
+        await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
+      }
+      
+      return loginResponse;
+    } catch (e) {
+      rethrow;
+    }
   }
 }

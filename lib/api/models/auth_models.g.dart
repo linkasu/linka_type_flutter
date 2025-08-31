@@ -34,11 +34,16 @@ Map<String, dynamic> _$LoginUserToJson(LoginUser instance) => <String, dynamic>{
 LoginResponse _$LoginResponseFromJson(Map<String, dynamic> json) =>
     LoginResponse(
       token: json['token'] as String,
+      refreshToken: json['refreshToken'] as String?,
       user: LoginUser.fromJson(json['user'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$LoginResponseToJson(LoginResponse instance) =>
-    <String, dynamic>{'token': instance.token, 'user': instance.user};
+    <String, dynamic>{
+      'token': instance.token,
+      'refreshToken': instance.refreshToken,
+      'user': instance.user,
+    };
 
 VerifyEmailRequest _$VerifyEmailRequestFromJson(Map<String, dynamic> json) =>
     VerifyEmailRequest(
@@ -83,3 +88,10 @@ Map<String, dynamic> _$ResetPasswordConfirmRequestToJson(
   'code': instance.code,
   'password': instance.password,
 };
+
+RefreshTokenRequest _$RefreshTokenRequestFromJson(Map<String, dynamic> json) =>
+    RefreshTokenRequest(refreshToken: json['refreshToken'] as String);
+
+Map<String, dynamic> _$RefreshTokenRequestToJson(
+  RefreshTokenRequest instance,
+) => <String, dynamic>{'refreshToken': instance.refreshToken};

@@ -6,6 +6,7 @@ class TokenManager {
   static const String _userIdKey = 'user_id';
   static const String _emailKey = 'user_email';
 
+
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
@@ -41,6 +42,8 @@ class TokenManager {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_emailKey);
   }
+
+
 
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();

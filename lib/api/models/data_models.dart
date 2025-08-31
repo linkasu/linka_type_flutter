@@ -4,8 +4,9 @@ part 'data_models.g.dart';
 
 @JsonSerializable()
 class CreateStatementRequest {
+  @JsonKey(name: 'title')
   final String title;
-  @JsonKey(name: 'category_id')
+  @JsonKey(name: 'categoryId')
   final String categoryId;
 
   CreateStatementRequest({
@@ -19,8 +20,9 @@ class CreateStatementRequest {
 
 @JsonSerializable()
 class UpdateStatementRequest {
+  @JsonKey(name: 'title')
   final String title;
-  @JsonKey(name: 'category_id')
+  @JsonKey(name: 'categoryId')
   final String categoryId;
 
   UpdateStatementRequest({

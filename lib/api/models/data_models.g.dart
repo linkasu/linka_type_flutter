@@ -10,28 +10,28 @@ CreateStatementRequest _$CreateStatementRequestFromJson(
   Map<String, dynamic> json,
 ) => CreateStatementRequest(
   title: json['title'] as String,
-  categoryId: json['category_id'] as String,
+  categoryId: json['categoryId'] as String,
 );
 
 Map<String, dynamic> _$CreateStatementRequestToJson(
   CreateStatementRequest instance,
 ) => <String, dynamic>{
   'title': instance.title,
-  'category_id': instance.categoryId,
+  'categoryId': instance.categoryId,
 };
 
 UpdateStatementRequest _$UpdateStatementRequestFromJson(
   Map<String, dynamic> json,
 ) => UpdateStatementRequest(
   title: json['title'] as String,
-  categoryId: json['category_id'] as String,
+  categoryId: json['categoryId'] as String,
 );
 
 Map<String, dynamic> _$UpdateStatementRequestToJson(
   UpdateStatementRequest instance,
 ) => <String, dynamic>{
   'title': instance.title,
-  'category_id': instance.categoryId,
+  'categoryId': instance.categoryId,
 };
 
 CreateCategoryRequest _$CreateCategoryRequestFromJson(

@@ -47,10 +47,12 @@ class LoginUser {
 @JsonSerializable()
 class LoginResponse {
   final String token;
+  final String? refreshToken;
   final LoginUser user;
 
   LoginResponse({
     required this.token,
+    this.refreshToken,
     required this.user,
   });
 
@@ -112,4 +114,16 @@ class ResetPasswordConfirmRequest {
 
   factory ResetPasswordConfirmRequest.fromJson(Map<String, dynamic> json) => _$ResetPasswordConfirmRequestFromJson(json);
   Map<String, dynamic> toJson() => _$ResetPasswordConfirmRequestToJson(this);
+}
+
+@JsonSerializable()
+class RefreshTokenRequest {
+  final String refreshToken;
+
+  RefreshTokenRequest({
+    required this.refreshToken,
+  });
+
+  factory RefreshTokenRequest.fromJson(Map<String, dynamic> json) => _$RefreshTokenRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$RefreshTokenRequestToJson(this);
 }

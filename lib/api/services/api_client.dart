@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../utils/token_manager.dart';
 import '../exceptions.dart';
+import 'auth_service.dart';
 
 class ApiClient {
   static const String baseUrl = 'https://type-backend.linka.su/api';
@@ -77,12 +78,61 @@ class ApiClient {
           ? jsonDecode(response.body) as Map<String, dynamic>
           : <String, dynamic>{};
       
+      // Если получили 401, попробуем автоматически перелогиниться
+      if (response.statusCode == 401) {
+        try {
+          await _attemptAutoRelogin();
+          // Повторяем запрос с новым токеном
+          return await _retryRequest(response.request!);
+        } catch (e) {
+          // Очищаем токен и выбрасываем ошибку
+          await TokenManager.clearAll();
+        }
+      }
+      
       throw ApiException(
         statusCode: response.statusCode,
         message: errorBody['message'] ?? 'HTTP ${response.statusCode}',
         details: errorBody,
       );
     }
+  }
+
+  Future<void> _attemptAutoRelogin() async {
+    try {
+      // Создаем новый экземпляр AuthService для refresh token
+      final authService = AuthService();
+      await authService.refreshToken();
+    } catch (e) {
+      // Очищаем все данные при неудачном refresh
+      await TokenManager.clearAll();
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> _retryRequest(http.BaseRequest originalRequest) async {
+    final headers = await _getHeaders();
+    final uri = originalRequest.url;
+    
+    http.Response response;
+    switch (originalRequest.method.toUpperCase()) {
+      case 'GET':
+        response = await http.get(uri, headers: headers);
+        break;
+      case 'POST':
+        response = await http.post(uri, headers: headers, body: originalRequest is http.Request ? originalRequest.body : null);
+        break;
+      case 'PUT':
+        response = await http.put(uri, headers: headers, body: originalRequest is http.Request ? originalRequest.body : null);
+        break;
+      case 'DELETE':
+        response = await http.delete(uri, headers: headers);
+        break;
+      default:
+        throw Exception('Unsupported HTTP method: ${originalRequest.method}');
+    }
+    
+    return _handleResponse(response);
   }
 
   Future<Map<String, dynamic>> get(String endpoint, {Map<String, String>? queryParams}) async {

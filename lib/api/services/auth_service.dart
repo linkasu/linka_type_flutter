@@ -1,25 +1,40 @@
 import '../models/auth_models.dart';
 import '../utils/token_manager.dart';
 import 'api_client.dart';
+import 'dart:developer' as developer;
 
 class AuthService {
   final ApiClient _apiClient = ApiClient();
 
   Future<LoginResponse> login(String email, String password) async {
     try {
+      developer.log('Начинаю процесс авторизации для email: $email');
+      
       final request = LoginRequest(email: email, password: password);
+      developer.log('Отправляю запрос на /login');
+      
       final response = await _apiClient.post('/login', body: request.toJson());
+      developer.log('Получен ответ от сервера: ${response.toString()}');
       
       final loginResponse = LoginResponse.fromJson(response);
+      developer.log('Ответ успешно десериализован');
       
+      developer.log('Сохраняю токен в TokenManager');
       await TokenManager.saveToken(loginResponse.token);
+      
       if (loginResponse.refreshToken != null && loginResponse.refreshToken!.isNotEmpty) {
+        developer.log('Сохраняю refresh token');
         await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
       }
+      
+      developer.log('Сохраняю информацию о пользователе');
       await TokenManager.saveUserInfo(loginResponse.user.id, loginResponse.user.email);
       
+      developer.log('Авторизация завершена успешно');
       return loginResponse;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      developer.log('Ошибка при авторизации: $e');
+      developer.log('Stack trace: $stackTrace');
       rethrow;
     }
   }

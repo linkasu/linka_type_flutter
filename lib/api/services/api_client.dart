@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../utils/token_manager.dart';
 import '../exceptions.dart';
 import 'auth_service.dart';
+import 'dart:developer' as developer;
 
 class ApiClient {
   static const String baseUrl = 'https://type-backend.linka.su/api';
@@ -12,16 +13,24 @@ class ApiClient {
   ApiClient._internal();
 
   Future<Map<String, String>> _getHeaders() async {
-    final token = await TokenManager.getToken();
-    final headers = {
-      'Content-Type': 'application/json',
-    };
-    
-    if (token != null) {
-      headers['Authorization'] = 'Bearer $token';
+    try {
+      final token = await TokenManager.getToken();
+      final headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+        developer.log('Добавлен токен авторизации в заголовки');
+      } else {
+        developer.log('Токен авторизации отсутствует');
+      }
+      
+      return headers;
+    } catch (e) {
+      developer.log('Ошибка при формировании заголовков: $e');
+      return {'Content-Type': 'application/json'};
     }
-    
-    return headers;
   }
 
   Future<http.Response> _makeRequest(
@@ -30,12 +39,17 @@ class ApiClient {
     Map<String, dynamic>? body,
     Map<String, String>? queryParams,
   }) async {
-    final headers = await _getHeaders();
-    final uri = Uri.parse('$baseUrl$endpoint').replace(queryParameters: queryParams);
-    
-    http.Response response;
-    
     try {
+      final headers = await _getHeaders();
+      final uri = Uri.parse('$baseUrl$endpoint').replace(queryParameters: queryParams);
+      
+      developer.log('Отправляю $method запрос на: $uri');
+      if (body != null) {
+        developer.log('Тело запроса: ${jsonEncode(body)}');
+      }
+      
+      http.Response response;
+      
       switch (method.toUpperCase()) {
         case 'GET':
           response = await http.get(uri, headers: headers);
@@ -61,8 +75,10 @@ class ApiClient {
           throw Exception('Unsupported HTTP method: $method');
       }
       
+      developer.log('Получен ответ: ${response.statusCode} - ${response.body}');
       return response;
     } catch (e) {
+      developer.log('Ошибка при выполнении запроса: $e');
       rethrow;
     }
   }

@@ -25,6 +25,16 @@ jobs:
         channel: 'stable'
         cache: true
         
+    - name: Cache Dart dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+        key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-dart-
+          
     - name: Get dependencies
       run: flutter pub get
       
@@ -53,6 +63,14 @@ jobs:
         channel: 'stable'
         cache: true
         
+    - name: Cache APT packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt
+        key: ${{ runner.os }}-apt-${{ hashFiles('**/pubspec.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-
+          
     - name: Install Linux dependencies
       run: |
         sudo apt-get update
@@ -61,6 +79,25 @@ jobs:
         sudo apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
         sudo apt-get install -y gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl
         
+    - name: Cache Dart dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+        key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-dart-
+          
+    - name: Cache Linux build
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/linux
+        key: ${{ runner.os }}-linux-${{ hashFiles('**/pubspec.lock', '**/linux/**') }}
+        restore-keys: |
+          ${{ runner.os }}-linux-
+          
     - name: Get dependencies
       run: flutter pub get
       
@@ -89,6 +126,25 @@ jobs:
         channel: 'stable'
         cache: true
         
+    - name: Cache Dart dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+        key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-dart-
+          
+    - name: Cache Windows build
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/windows
+        key: ${{ runner.os }}-windows-${{ hashFiles('**/pubspec.lock', '**/windows/**') }}
+        restore-keys: |
+          ${{ runner.os }}-windows-
+          
     - name: Get dependencies
       run: flutter pub get
       
@@ -117,8 +173,43 @@ jobs:
         channel: 'stable'
         cache: true
         
+    - name: Cache Dart dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+        key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-dart-
+          
+    - name: Cache CocoaPods
+      uses: actions/cache@v4
+      with:
+        path: |
+          ios/Pods
+          macos/Pods
+          ~/Library/Caches/CocoaPods
+        key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pods-
+          
+    - name: Cache macOS build
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/macos
+        key: ${{ runner.os }}-macos-${{ hashFiles('**/pubspec.lock', '**/macos/**') }}
+        restore-keys: |
+          ${{ runner.os }}-macos-
+          
     - name: Get dependencies
       run: flutter pub get
+      
+    - name: Install CocoaPods dependencies
+      run: |
+        cd ios && pod install --repo-update
+        cd ../macos && pod install --repo-update
       
     - name: Build macOS app
       run: flutter build macos --release
@@ -154,11 +245,50 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       
+    - name: Cache Android dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+          android/.gradle
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: Cache Dart dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+        key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-dart-
+          
+    - name: Cache APT packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt
+        key: ${{ runner.os }}-apt-android-${{ hashFiles('**/pubspec.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-android-
+          ${{ runner.os }}-apt-
+          
     - name: Install additional dependencies for Android
       run: |
         sudo apt-get update
         sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
       
+    - name: Cache Android build
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/app
+        key: ${{ runner.os }}-android-${{ hashFiles('**/pubspec.lock', '**/android/**') }}
+        restore-keys: |
+          ${{ runner.os }}-android-
+          
     - name: Get dependencies
       run: flutter pub get
       
@@ -192,8 +322,40 @@ jobs:
         channel: 'stable'
         cache: true
         
+    - name: Cache Dart dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+        key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-dart-
+          
+    - name: Cache CocoaPods
+      uses: actions/cache@v4
+      with:
+        path: |
+          ios/Pods
+          ~/Library/Caches/CocoaPods
+        key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pods-
+          
+    - name: Cache iOS build
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/ios
+        key: ${{ runner.os }}-ios-${{ hashFiles('**/pubspec.lock', '**/ios/**') }}
+        restore-keys: |
+          ${{ runner.os }}-ios-
+          
     - name: Get dependencies
       run: flutter pub get
+      
+    - name: Install CocoaPods dependencies
+      run: cd ios && pod install --repo-update
       
     - name: Build iOS app
       run: flutter build ios --release --no-codesign
@@ -220,6 +382,25 @@ jobs:
         channel: 'stable'
         cache: true
         
+    - name: Cache Dart dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+        key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-dart-
+          
+    - name: Cache Web build
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/web
+        key: ${{ runner.os }}-web-${{ hashFiles('**/pubspec.lock', '**/web/**') }}
+        restore-keys: |
+          ${{ runner.os }}-web-
+          
     - name: Get dependencies
       run: flutter pub get
       

@@ -109,16 +109,16 @@ Map<String, dynamic> _$ResetPasswordConfirmRequestToJson(
 
 RegisterResponse _$RegisterResponseFromJson(Map<String, dynamic> json) =>
     RegisterResponse(
-      message: json['message'] as String,
-      userId: json['userId'] as String,
-      email: json['email'] as String,
+      token: json['token'] as String,
+      refreshToken: json['refresh_token'] as String?,
+      user: LoginUser.fromJson(json['user'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$RegisterResponseToJson(RegisterResponse instance) =>
     <String, dynamic>{
-      'message': instance.message,
-      'userId': instance.userId,
-      'email': instance.email,
+      'token': instance.token,
+      'refresh_token': instance.refreshToken,
+      'user': instance.user,
     };
 
 VerifyEmailResponse _$VerifyEmailResponseFromJson(Map<String, dynamic> json) =>

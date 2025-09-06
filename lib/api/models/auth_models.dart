@@ -105,14 +105,15 @@ class ResetPasswordConfirmRequest {
 
 @JsonSerializable()
 class RegisterResponse {
-  final String message;
-  final String userId;
-  final String email;
+  final String token;
+  @JsonKey(name: 'refresh_token')
+  final String? refreshToken;
+  final LoginUser user;
 
   RegisterResponse({
-    required this.message,
-    required this.userId,
-    required this.email,
+    required this.token,
+    this.refreshToken,
+    required this.user,
   });
 
   factory RegisterResponse.fromJson(Map<String, dynamic> json) =>

@@ -45,11 +45,41 @@ class AuthService {
 
   Future<RegisterResponse> register(String email, String password) async {
     try {
+      developer.log('Начинаю процесс регистрации для email: $email');
+
       final request = RegisterRequest(email: email, password: password);
+      developer.log('Отправляю запрос на /register');
+
       final response =
           await _apiClient.post('/register', body: request.toJson());
-      return RegisterResponse.fromJson(response);
-    } catch (e) {
+      developer.log('Получен ответ от сервера: ${response.toString()}');
+
+      final registerResponse = RegisterResponse.fromJson(response);
+      developer.log('Ответ успешно десериализован');
+
+      // Сохраняем токен если он есть
+      if (registerResponse.token.isNotEmpty) {
+        developer.log('Сохраняю токен в TokenManager');
+        await TokenManager.saveToken(registerResponse.token);
+      }
+
+      if (registerResponse.refreshToken != null &&
+          registerResponse.refreshToken!.isNotEmpty) {
+        developer.log('Сохраняю refresh token');
+        await TokenManager.saveRefreshToken(registerResponse.refreshToken!);
+      }
+
+      developer.log('Сохраняю информацию о пользователе');
+      await TokenManager.saveUserInfo(
+        registerResponse.user.id,
+        registerResponse.user.email,
+      );
+
+      developer.log('Регистрация завершена успешно');
+      return registerResponse;
+    } catch (e, stackTrace) {
+      developer.log('Ошибка при регистрации: $e');
+      developer.log('Stack trace: $stackTrace');
       rethrow;
     }
   }

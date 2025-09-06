@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
+import 'register_screen.dart';
 import 'reset_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -219,10 +220,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           TextButton(
                             onPressed: () {
-                              // TODO: Переход на экран регистрации
-                              // Navigator.of(context).push(
-                              //   MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                              // );
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const RegisterScreen(),
+                                ),
+                              );
                             },
                             child: const Text('Регистрация'),
                           ),

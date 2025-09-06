@@ -41,7 +41,10 @@ case "$(uname -s)" in
         if flutter build linux --release; then
             echo "✅ Linux сборка успешна"
         else
-            echo "⚠️  Linux сборка не удалась (возможно, отсутствуют зависимости)"
+            echo "⚠️  Linux сборка не удалась"
+            echo "💡 Для сборки Linux приложения с аудио плагинами установите:"
+            echo "   sudo apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev"
+            echo "   sudo apt-get install gstreamer1.0-plugins-base gstreamer1.0-plugins-good"
         fi
         ;;
     Darwin*)

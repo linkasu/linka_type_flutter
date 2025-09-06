@@ -55,6 +55,15 @@ flutter test
 - Flutter 3.35.3+
 - Dart 3.5.0+
 
+#### Дополнительные зависимости для Linux
+
+Для сборки приложения с аудио плагинами на Linux:
+
+```bash
+sudo apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+sudo apt-get install gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+```
+
 ### Полезные команды
 
 ```bash

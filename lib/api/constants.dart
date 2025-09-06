@@ -41,9 +41,9 @@ class ApiConstants {
   static const int notFound = 404;
   static const int internalServerError = 500;
 
-  // Error messages
-  static const String networkError = 'Ошибка сети';
-  static const String unauthorizedError = 'Не авторизован';
-  static const String serverError = 'Ошибка сервера';
-  static const String unknownError = 'Неизвестная ошибка';
+  // Error messages - these will be replaced with localized strings
+  static const String networkError = 'Network error';
+  static const String unauthorizedError = 'Unauthorized';
+  static const String serverError = 'Server error';
+  static const String unknownError = 'Unknown error';
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 import 'ui/ui.dart';
 import 'services/shortcut_controller.dart';
 
@@ -26,6 +28,16 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'LINKa напиши',
         theme: AppTheme.lightTheme,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('ru', ''),
+          Locale('en', ''),
+        ],
         home: const AuthChecker(),
         routes: {
           '/login': (context) => const LoginScreen(),

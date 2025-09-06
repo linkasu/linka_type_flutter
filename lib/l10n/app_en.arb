@@ -1,0 +1,167 @@
+{
+  "@@locale": "en",
+  "appTitle": "LINKa Type",
+  "@appTitle": {
+    "description": "Application title"
+  },
+  
+  "login": "Login",
+  "@login": {
+    "description": "Login button"
+  },
+  "register": "Register",
+  "@register": {
+    "description": "Register button"
+  },
+  "forgotPassword": "Forgot password?",
+  "@forgotPassword": {
+    "description": "Forgot password link"
+  },
+  
+  "email": "Email",
+  "@email": {
+    "description": "Email field"
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Password field"
+  },
+  
+  "enterEmail": "Enter email",
+  "@enterEmail": {
+    "description": "Email validation"
+  },
+  "enterPassword": "Enter password",
+  "@enterPassword": {
+    "description": "Password validation"
+  },
+  "passwordMinLength": "Password must contain at least 6 characters",
+  "@passwordMinLength": {
+    "description": "Password length validation"
+  },
+  
+  "welcomeMessage": "Welcome, {email}!",
+  "@welcomeMessage": {
+    "description": "Welcome message",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "description": "User email"
+      }
+    }
+  },
+  
+  "errorInvalidCredentials": "Invalid email or password",
+  "@errorInvalidCredentials": {
+    "description": "Invalid credentials error"
+  },
+  "errorInvalidFormat": "Invalid data format",
+  "@errorInvalidFormat": {
+    "description": "Invalid format error"
+  },
+  "errorServer": "Server error",
+  "@errorServer": {
+    "description": "Server error"
+  },
+  "errorNetwork": "Network error",
+  "@errorNetwork": {
+    "description": "Network error"
+  },
+  "errorUnauthorized": "Unauthorized",
+  "@errorUnauthorized": {
+    "description": "Authorization error"
+  },
+  "errorUnknown": "Unknown error",
+  "@errorUnknown": {
+    "description": "Unknown error"
+  },
+  "errorOccurred": "An error occurred: {error}",
+  "@errorOccurred": {
+    "description": "General error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error text"
+      }
+    }
+  },
+  
+  "loadingDataError": "Error loading data: {error}",
+  "@loadingDataError": {
+    "description": "Data loading error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error text"
+      }
+    }
+  },
+  "updateError": "Update error: {error}",
+  "@updateError": {
+    "description": "Update error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error text"
+      }
+    }
+  },
+  "deleteError": "Delete error: {error}",
+  "@deleteError": {
+    "description": "Delete error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error text"
+      }
+    }
+  },
+  "addError": "Add error: {error}",
+  "@addError": {
+    "description": "Add error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error text"
+      }
+    }
+  },
+  
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings"
+  },
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout from system"
+  },
+  
+  "ttsError": "Playback error: {error}",
+  "@ttsError": {
+    "description": "TTS error",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error text"
+      }
+    }
+  },
+  "ttsStatus": "Error: {error}",
+  "@ttsStatus": {
+    "description": "TTS status",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Error text"
+      }
+    }
+  },
+  "errorCopied": "Error copied to clipboard",
+  "@errorCopied": {
+    "description": "Error copied"
+  },
+  "errorCopiedShort": "Error copied",
+  "@errorCopiedShort": {
+    "description": "Error copied (short)"
+  }
+}

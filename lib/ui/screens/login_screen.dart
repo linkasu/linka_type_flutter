@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
@@ -46,7 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Добро пожаловать, ${response.user.email}!'),
+            content: Text(AppLocalizations.of(context)!
+                .welcomeMessage(response.user.email)),
             backgroundColor: Colors.green,
           ),
         );
@@ -62,7 +64,8 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Произошла ошибка: $e';
+        _errorMessage =
+            AppLocalizations.of(context)!.errorOccurred(e.toString());
       });
     } finally {
       if (mounted) {
@@ -76,13 +79,13 @@ class _LoginScreenState extends State<LoginScreen> {
   String _getErrorMessage(int statusCode) {
     switch (statusCode) {
       case 401:
-        return 'Неверный email или пароль';
+        return AppLocalizations.of(context)!.errorInvalidCredentials;
       case 400:
-        return 'Неверный формат данных';
+        return AppLocalizations.of(context)!.errorInvalidFormat;
       case 500:
-        return 'Ошибка сервера';
+        return AppLocalizations.of(context)!.errorServer;
       default:
-        return 'Произошла ошибка';
+        return AppLocalizations.of(context)!.errorUnknown;
     }
   }
 
@@ -122,18 +125,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email),
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)!.email,
+                          prefixIcon: const Icon(Icons.email),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Введите email';
+                            return AppLocalizations.of(context)!.enterEmail;
                           }
                           if (!RegExp(
                             r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                           ).hasMatch(value)) {
-                            return 'Введите корректный email';
+                            return AppLocalizations.of(context)!
+                                .errorInvalidFormat;
                           }
                           return null;
                         },
@@ -147,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         textInputAction: TextInputAction.done,
                         onFieldSubmitted: (_) => _login(),
                         decoration: InputDecoration(
-                          labelText: 'Пароль',
+                          labelText: AppLocalizations.of(context)!.password,
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -164,10 +168,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Введите пароль';
+                            return AppLocalizations.of(context)!.enterPassword;
                           }
                           if (value.length < 6) {
-                            return 'Пароль должен содержать минимум 6 символов';
+                            return AppLocalizations.of(context)!
+                                .passwordMinLength;
                           }
                           return null;
                         },
@@ -209,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 )
-                              : const Text('Войти'),
+                              : Text(AppLocalizations.of(context)!.login),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -226,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               );
                             },
-                            child: const Text('Регистрация'),
+                            child: Text(AppLocalizations.of(context)!.register),
                           ),
                           TextButton(
                             onPressed: () {
@@ -237,7 +242,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               );
                             },
-                            child: const Text('Забыли пароль?'),
+                            child: Text(
+                                AppLocalizations.of(context)!.forgotPassword),
                           ),
                         ],
                       ),

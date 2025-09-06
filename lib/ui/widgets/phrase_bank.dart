@@ -12,6 +12,8 @@ class PhraseBank extends StatefulWidget {
   final Function(Category) onEditCategory;
   final Function(Category) onDeleteCategory;
   final VoidCallback onAddStatement;
+  final Category? selectedCategory;
+  final Function(Category?) onCategorySelected;
 
   const PhraseBank({
     super.key,
@@ -23,6 +25,8 @@ class PhraseBank extends StatefulWidget {
     required this.onEditCategory,
     required this.onDeleteCategory,
     required this.onAddStatement,
+    this.selectedCategory,
+    required this.onCategorySelected,
   });
 
   @override
@@ -30,8 +34,8 @@ class PhraseBank extends StatefulWidget {
 }
 
 class _PhraseBankState extends State<PhraseBank> {
-  bool _showCategories = true;
-  Category? _selectedCategory;
+  bool get _showCategories => widget.selectedCategory == null;
+  Category? get _selectedCategory => widget.selectedCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +52,7 @@ class _PhraseBankState extends State<PhraseBank> {
                   IconButton(
                     icon: const Icon(Icons.arrow_back),
                     onPressed: () {
-                      setState(() {
-                        _showCategories = true;
-                        _selectedCategory = null;
-                      });
+                      widget.onCategorySelected(null);
                     },
                     tooltip: 'Назад к категориям',
                   ),
@@ -119,10 +120,7 @@ class _PhraseBankState extends State<PhraseBank> {
         return Card(
           child: GestureDetector(
             onTap: () {
-              setState(() {
-                _selectedCategory = category;
-                _showCategories = false;
-              });
+              widget.onCategorySelected(category);
             },
             onLongPress: () => _showCategoryContextMenu(context, category),
             onSecondaryTapDown: (details) => _showCategoryContextMenu(context, category),

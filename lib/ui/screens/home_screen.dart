@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Category> _categories = [];
   List<Statement> _statements = [];
   bool _isLoading = true;
+  Category? _selectedCategory;
 
   @override
   void initState() {
@@ -80,6 +81,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _sayStatement(Statement statement) async {
     await _ttsService.say(statement.title);
+  }
+
+  void _onCategorySelected(Category? category) {
+    setState(() {
+      _selectedCategory = category;
+    });
   }
 
   Future<void> _editStatement(Statement statement) async {
@@ -301,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final TextEditingController titleController = TextEditingController();
-    String? selectedCategoryId = _categories.first.id;
+    String? selectedCategoryId = _selectedCategory?.id ?? _categories.first.id;
     
     final result = await showDialog<Map<String, String>>(
       context: context,
@@ -454,6 +461,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       onEditCategory: _editCategory,
                       onDeleteCategory: _deleteCategory,
                       onAddStatement: _addStatement,
+                      selectedCategory: _selectedCategory,
+                      onCategorySelected: _onCategorySelected,
                     ),
                   ),
                 ],

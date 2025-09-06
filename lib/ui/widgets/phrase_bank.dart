@@ -62,13 +62,16 @@ class _PhraseBankState extends State<PhraseBank> {
                   ),
                 const Icon(Icons.library_books, color: AppTheme.primaryColor),
                 const SizedBox(width: 8),
-                Text(
-                  _showCategories
-                      ? 'Выберите категорию'
-                      : 'Фразы: ${_selectedCategory?.title ?? ""}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    _showCategories
+                        ? 'Выберите категорию'
+                        : 'Фразы: ${_selectedCategory?.title ?? ""}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const Spacer(),
@@ -122,26 +125,34 @@ class _PhraseBankState extends State<PhraseBank> {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 4.5,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: widget.categories.length,
-      itemBuilder: (context, index) {
-        final category = widget.categories[index];
-        final statementCount =
-            widget.statements.where((s) => s.categoryId == category.id).length;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Определяем количество колонок в зависимости от ширины экрана
+        final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
+        final childAspectRatio = constraints.maxWidth > 600 ? 2.5 : 6.0;
 
-        return CategoryCard(
-          category: category,
-          statementCount: statementCount,
-          onTap: () => widget.onCategorySelected(category),
-          onEdit: () => widget.onEditCategory(category),
-          onDelete: () => widget.onDeleteCategory(category),
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: widget.categories.length,
+          itemBuilder: (context, index) {
+            final category = widget.categories[index];
+            final statementCount =
+                widget.statements.where((s) => s.categoryId == category.id).length;
+
+            return CategoryCard(
+              category: category,
+              statementCount: statementCount,
+              onTap: () => widget.onCategorySelected(category),
+              onEdit: () => widget.onEditCategory(category),
+              onDelete: () => widget.onDeleteCategory(category),
+            );
+          },
         );
       },
     );
@@ -174,23 +185,31 @@ class _PhraseBankState extends State<PhraseBank> {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 4.5,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: statements.length,
-      itemBuilder: (context, index) {
-        final statement = statements[index];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Определяем количество колонок в зависимости от ширины экрана
+        final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
+        final childAspectRatio = constraints.maxWidth > 600 ? 2.5 : 6.0;
 
-        return StatementCard(
-          statement: statement,
-          onTap: () => widget.onSayStatement(statement),
-          onEdit: () => widget.onEditStatement(statement),
-          onDelete: () => widget.onDeleteStatement(statement),
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: statements.length,
+          itemBuilder: (context, index) {
+            final statement = statements[index];
+
+            return StatementCard(
+              statement: statement,
+              onTap: () => widget.onSayStatement(statement),
+              onEdit: () => widget.onEditStatement(statement),
+              onDelete: () => widget.onDeleteStatement(statement),
+            );
+          },
         );
       },
     );

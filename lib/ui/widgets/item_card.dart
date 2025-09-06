@@ -29,9 +29,9 @@ class ItemCard extends StatelessWidget {
       onLongPress: () => _showContextMenu(context),
       onSecondaryTapDown: (details) => _showContextMenu(context),
       child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Center(
+        child: ClipRect(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -48,7 +48,7 @@ class ItemCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
+                    maxLines: 1,
                     textAlign: TextAlign.center,
                   ),
                 ),

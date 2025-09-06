@@ -23,7 +23,6 @@ class CategoryCard extends StatelessWidget {
     return ItemCard(
       title: category.title,
       subtitle: '$statementCount фраз',
-      icon: Icons.folder,
       onTap: onTap,
       onEdit: onEdit,
       onDelete: onDelete,

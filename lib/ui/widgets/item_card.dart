@@ -57,10 +57,7 @@ class ItemCard extends StatelessWidget {
                   Flexible(
                     child: Text(
                       subtitle!,
-                      style: const TextStyle(
-                        fontSize: 9,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 9, color: Colors.grey),
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -77,30 +74,36 @@ class ItemCard extends StatelessWidget {
 
   void _showContextMenu(BuildContext context) {
     final items = <ContextMenuItem>[];
-    
+
     if (onPlay != null) {
-      items.add(ContextMenuItem(
-        icon: const Icon(Icons.play_arrow),
-        title: 'Воспроизвести',
-        onTap: onPlay!,
-      ));
+      items.add(
+        ContextMenuItem(
+          icon: const Icon(Icons.play_arrow),
+          title: 'Воспроизвести',
+          onTap: onPlay!,
+        ),
+      );
     }
-    
+
     if (onEdit != null) {
-      items.add(ContextMenuItem(
-        icon: const Icon(Icons.edit),
-        title: 'Редактировать',
-        onTap: onEdit!,
-      ));
+      items.add(
+        ContextMenuItem(
+          icon: const Icon(Icons.edit),
+          title: 'Редактировать',
+          onTap: onEdit!,
+        ),
+      );
     }
-    
+
     if (onDelete != null) {
-      items.add(ContextMenuItem(
-        icon: const Icon(Icons.delete, color: Colors.red),
-        title: 'Удалить',
-        onTap: onDelete!,
-        textStyle: const TextStyle(color: Colors.red),
-      ));
+      items.add(
+        ContextMenuItem(
+          icon: const Icon(Icons.delete, color: Colors.red),
+          title: 'Удалить',
+          onTap: onDelete!,
+          textStyle: const TextStyle(color: Colors.red),
+        ),
+      );
     }
 
     if (items.isNotEmpty) {

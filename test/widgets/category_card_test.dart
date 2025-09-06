@@ -72,7 +72,7 @@ void main() {
 
     testWidgets('вызывает onTap при нажатии', (WidgetTester tester) async {
       bool tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -91,9 +91,11 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('вызывает onEdit при нажатии на редактировать', (WidgetTester tester) async {
+    testWidgets('вызывает onEdit при нажатии на редактировать', (
+      WidgetTester tester,
+    ) async {
       bool edited = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -110,14 +112,16 @@ void main() {
 
       await tester.longPress(find.byType(CategoryCard));
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.text('Редактировать'));
       expect(edited, isTrue);
     });
 
-    testWidgets('вызывает onDelete при нажатии на удалить', (WidgetTester tester) async {
+    testWidgets('вызывает onDelete при нажатии на удалить', (
+      WidgetTester tester,
+    ) async {
       bool deleted = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -134,12 +138,14 @@ void main() {
 
       await tester.longPress(find.byType(CategoryCard));
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.text('Удалить'));
       expect(deleted, isTrue);
     });
 
-    testWidgets('показывает правильное склонение для одной фразы', (WidgetTester tester) async {
+    testWidgets('показывает правильное склонение для одной фразы', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -157,7 +163,9 @@ void main() {
       expect(find.text('1 фраз'), findsOneWidget);
     });
 
-    testWidgets('показывает правильное склонение для нескольких фраз', (WidgetTester tester) async {
+    testWidgets('показывает правильное склонение для нескольких фраз', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -175,7 +183,9 @@ void main() {
       expect(find.text('5 фраз'), findsOneWidget);
     });
 
-    testWidgets('показывает правильное склонение для нуля фраз', (WidgetTester tester) async {
+    testWidgets('показывает правильное склонение для нуля фраз', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

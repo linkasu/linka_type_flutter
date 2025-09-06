@@ -53,7 +53,7 @@ class _TextInputBlockState extends State<TextInputBlock> {
           children: [
             Focus(
               onKeyEvent: (node, event) {
-                if (event is KeyDownEvent && 
+                if (event is KeyDownEvent &&
                     event.logicalKey == LogicalKeyboardKey.enter &&
                     HardwareKeyboard.instance.isControlPressed) {
                   if (_hasText) {
@@ -69,7 +69,8 @@ class _TextInputBlockState extends State<TextInputBlock> {
                 decoration: const InputDecoration(
                   labelText: 'Введите текст для озвучивания',
                   border: OutlineInputBorder(),
-                  hintText: 'Например: Привет, как дела? (Ctrl+Enter для озвучивания)',
+                  hintText:
+                      'Например: Привет, как дела? (Ctrl+Enter для озвучивания)',
                 ),
               ),
             ),

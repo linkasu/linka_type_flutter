@@ -9,12 +9,9 @@ class Category {
   @JsonKey(name: 'userId')
   final String userId;
 
-  Category({
-    required this.id,
-    required this.title,
-    required this.userId,
-  });
+  Category({required this.id, required this.title, required this.userId});
 
-  factory Category.fromJson(Map<String, dynamic> json) => _$CategoryFromJson(json);
+  factory Category.fromJson(Map<String, dynamic> json) =>
+      _$CategoryFromJson(json);
   Map<String, dynamic> toJson() => _$CategoryToJson(this);
 }

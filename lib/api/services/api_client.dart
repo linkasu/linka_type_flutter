@@ -7,7 +7,7 @@ import 'dart:developer' as developer;
 
 class ApiClient {
   static const String baseUrl = 'https://type-backend.linka.su/api';
-  
+
   static final ApiClient _instance = ApiClient._internal();
   factory ApiClient() => _instance;
   ApiClient._internal();
@@ -15,17 +15,15 @@ class ApiClient {
   Future<Map<String, String>> _getHeaders() async {
     try {
       final token = await TokenManager.getToken();
-      final headers = {
-        'Content-Type': 'application/json',
-      };
-      
+      final headers = {'Content-Type': 'application/json'};
+
       if (token != null) {
         headers['Authorization'] = 'Bearer $token';
         developer.log('Добавлен токен авторизации в заголовки');
       } else {
         developer.log('Токен авторизации отсутствует');
       }
-      
+
       return headers;
     } catch (e) {
       developer.log('Ошибка при формировании заголовков: $e');
@@ -41,15 +39,17 @@ class ApiClient {
   }) async {
     try {
       final headers = await _getHeaders();
-      final uri = Uri.parse('$baseUrl$endpoint').replace(queryParameters: queryParams);
-      
+      final uri = Uri.parse(
+        '$baseUrl$endpoint',
+      ).replace(queryParameters: queryParams);
+
       developer.log('Отправляю $method запрос на: $uri');
       if (body != null) {
         developer.log('Тело запроса: ${jsonEncode(body)}');
       }
-      
+
       http.Response response;
-      
+
       switch (method.toUpperCase()) {
         case 'GET':
           response = await http.get(uri, headers: headers);
@@ -74,7 +74,7 @@ class ApiClient {
         default:
           throw Exception('Unsupported HTTP method: $method');
       }
-      
+
       developer.log('Получен ответ: ${response.statusCode} - ${response.body}');
       return response;
     } catch (e) {
@@ -90,10 +90,10 @@ class ApiClient {
       }
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
-      final errorBody = response.body.isNotEmpty 
+      final errorBody = response.body.isNotEmpty
           ? jsonDecode(response.body) as Map<String, dynamic>
           : <String, dynamic>{};
-      
+
       // Если получили 401, попробуем автоматически перелогиниться
       if (response.statusCode == 401) {
         try {
@@ -105,7 +105,7 @@ class ApiClient {
           await TokenManager.clearAll();
         }
       }
-      
+
       throw ApiException(
         statusCode: response.statusCode,
         message: errorBody['message'] ?? 'HTTP ${response.statusCode}',
@@ -126,20 +126,30 @@ class ApiClient {
     }
   }
 
-  Future<Map<String, dynamic>> _retryRequest(http.BaseRequest originalRequest) async {
+  Future<Map<String, dynamic>> _retryRequest(
+    http.BaseRequest originalRequest,
+  ) async {
     final headers = await _getHeaders();
     final uri = originalRequest.url;
-    
+
     http.Response response;
     switch (originalRequest.method.toUpperCase()) {
       case 'GET':
         response = await http.get(uri, headers: headers);
         break;
       case 'POST':
-        response = await http.post(uri, headers: headers, body: originalRequest is http.Request ? originalRequest.body : null);
+        response = await http.post(
+          uri,
+          headers: headers,
+          body: originalRequest is http.Request ? originalRequest.body : null,
+        );
         break;
       case 'PUT':
-        response = await http.put(uri, headers: headers, body: originalRequest is http.Request ? originalRequest.body : null);
+        response = await http.put(
+          uri,
+          headers: headers,
+          body: originalRequest is http.Request ? originalRequest.body : null,
+        );
         break;
       case 'DELETE':
         response = await http.delete(uri, headers: headers);
@@ -147,21 +157,34 @@ class ApiClient {
       default:
         throw Exception('Unsupported HTTP method: ${originalRequest.method}');
     }
-    
+
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> get(String endpoint, {Map<String, String>? queryParams}) async {
-    final response = await _makeRequest('GET', endpoint, queryParams: queryParams);
+  Future<Map<String, dynamic>> get(
+    String endpoint, {
+    Map<String, String>? queryParams,
+  }) async {
+    final response = await _makeRequest(
+      'GET',
+      endpoint,
+      queryParams: queryParams,
+    );
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> post(String endpoint, {Map<String, dynamic>? body}) async {
+  Future<Map<String, dynamic>> post(
+    String endpoint, {
+    Map<String, dynamic>? body,
+  }) async {
     final response = await _makeRequest('POST', endpoint, body: body);
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> put(String endpoint, {Map<String, dynamic>? body}) async {
+  Future<Map<String, dynamic>> put(
+    String endpoint, {
+    Map<String, dynamic>? body,
+  }) async {
     final response = await _makeRequest('PUT', endpoint, body: body);
     return _handleResponse(response);
   }
@@ -171,5 +194,3 @@ class ApiClient {
     return _handleResponse(response);
   }
 }
-
-

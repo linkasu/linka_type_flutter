@@ -17,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TTSService _ttsService = TTSService.instance;
   final DataService _dataService = DataService();
-  
+
   List<Category> _categories = [];
   List<Statement> _statements = [];
   bool _isLoading = true;
@@ -34,10 +34,10 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _isLoading = true;
       });
-      
+
       final categories = await _dataService.getCategories();
       final statements = await _dataService.getStatements();
-      
+
       setState(() {
         _categories = categories;
         _statements = statements;
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _isLoading = false;
       });
-      
+
       if (mounted) {
         // Проверяем, является ли ошибка 401 (неавторизован)
         if (e.toString().contains('401')) {
@@ -90,10 +90,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _editStatement(Statement statement) async {
-    final dropdownItems = _categories.map((category) => {
-      'value': category.id,
-      'label': category.title,
-    }).toList();
+    final dropdownItems = _categories
+        .map((category) => {'value': category.id, 'label': category.title})
+        .toList();
 
     final result = await CrudDialogs.showTextWithDropdownDialog(
       context: context,
@@ -108,18 +107,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (result != null) {
       try {
-        await _dataService.updateStatement(statement.id, result['text']!, result['dropdown']!);
+        await _dataService.updateStatement(
+          statement.id,
+          result['text']!,
+          result['dropdown']!,
+        );
         await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Фраза обновлена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Фраза обновлена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка обновления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка обновления: $e')));
         }
       }
     }
@@ -137,15 +140,15 @@ class _HomeScreenState extends State<HomeScreen> {
         await _dataService.deleteStatement(statement.id);
         await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Фраза удалена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Фраза удалена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка удаления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка удаления: $e')));
         }
       }
     }
@@ -164,15 +167,15 @@ class _HomeScreenState extends State<HomeScreen> {
         await _dataService.updateCategory(category.id, result);
         await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Категория обновлена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Категория обновлена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка обновления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка обновления: $e')));
         }
       }
     }
@@ -182,7 +185,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final confirmed = await CrudDialogs.showConfirmDialog(
       context: context,
       title: 'Удалить категорию?',
-      content: 'Вы уверены, что хотите удалить категорию "${category.title}"? Все фразы в этой категории также будут удалены.',
+      content:
+          'Вы уверены, что хотите удалить категорию "${category.title}"? Все фразы в этой категории также будут удалены.',
     );
 
     if (confirmed == true) {
@@ -190,15 +194,15 @@ class _HomeScreenState extends State<HomeScreen> {
         await _dataService.deleteCategory(category.id);
         await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Категория удалена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Категория удалена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка удаления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка удаления: $e')));
         }
       }
     }
@@ -217,15 +221,15 @@ class _HomeScreenState extends State<HomeScreen> {
         await _dataService.createCategory(result);
         await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Категория добавлена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Категория добавлена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка добавления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка добавления: $e')));
         }
       }
     }
@@ -239,10 +243,9 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final dropdownItems = _categories.map((category) => {
-      'value': category.id,
-      'label': category.title,
-    }).toList();
+    final dropdownItems = _categories
+        .map((category) => {'value': category.id, 'label': category.title})
+        .toList();
 
     final result = await CrudDialogs.showTextWithDropdownDialog(
       context: context,
@@ -256,18 +259,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (result != null) {
       try {
-        await _dataService.createStatement(result['text']!, result['dropdown']!);
+        await _dataService.createStatement(
+          result['text']!,
+          result['dropdown']!,
+        );
         await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Фраза добавлена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Фраза добавлена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка добавления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка добавления: $e')));
         }
       }
     }
@@ -291,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 confirmText: 'Выйти',
                 cancelText: 'Отмена',
               );
-              
+
               if (confirmed == true) {
                 await TokenManager.clearAll();
                 if (mounted) {
@@ -324,7 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onDownloadText: _downloadText,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Банк фраз
                   Expanded(
                     child: PhraseBank(

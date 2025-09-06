@@ -10,8 +10,10 @@ class CrudDialogs {
     int maxLines = 1,
     bool autofocus = true,
   }) async {
-    final TextEditingController controller = TextEditingController(text: initialValue);
-    
+    final TextEditingController controller = TextEditingController(
+      text: initialValue,
+    );
+
     return await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -54,9 +56,11 @@ class CrudDialogs {
     String? initialDropdownValue,
     int textMaxLines = 1,
   }) async {
-    final TextEditingController textController = TextEditingController(text: initialText);
+    final TextEditingController textController = TextEditingController(
+      text: initialText,
+    );
     String? selectedValue = initialDropdownValue;
-    
+
     return await showDialog<Map<String, String>>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -75,12 +79,12 @@ class CrudDialogs {
                 autofocus: true,
               ),
               const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedValue,
-                    decoration: InputDecoration(
-                      labelText: dropdownLabel,
-                      border: const OutlineInputBorder(),
-                    ),
+              DropdownButtonFormField<String>(
+                initialValue: selectedValue,
+                decoration: InputDecoration(
+                  labelText: dropdownLabel,
+                  border: const OutlineInputBorder(),
+                ),
                 items: dropdownItems.map((item) {
                   return DropdownMenuItem(
                     value: item['value'],
@@ -102,7 +106,8 @@ class CrudDialogs {
             ),
             ElevatedButton(
               onPressed: () {
-                if (textController.text.trim().isNotEmpty && selectedValue != null) {
+                if (textController.text.trim().isNotEmpty &&
+                    selectedValue != null) {
                   Navigator.of(context).pop({
                     'text': textController.text.trim(),
                     'dropdown': selectedValue!,
@@ -137,7 +142,7 @@ class CrudDialogs {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: isDestructive 
+            style: isDestructive
                 ? TextButton.styleFrom(foregroundColor: Colors.red)
                 : null,
             child: Text(confirmText),
@@ -157,14 +162,18 @@ class CrudDialogs {
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: items.map((item) => ListTile(
-            leading: item.icon,
-            title: Text(item.title, style: item.textStyle),
-            onTap: () {
-              Navigator.pop(context);
-              item.onTap();
-            },
-          )).toList(),
+          children: items
+              .map(
+                (item) => ListTile(
+                  leading: item.icon,
+                  title: Text(item.title, style: item.textStyle),
+                  onTap: () {
+                    Navigator.pop(context);
+                    item.onTap();
+                  },
+                ),
+              )
+              .toList(),
         ),
       ),
     );

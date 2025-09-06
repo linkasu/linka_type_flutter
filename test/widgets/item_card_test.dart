@@ -8,10 +8,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ItemCard(
-              title: 'Тестовая карточка',
-              onTap: () {},
-            ),
+            body: ItemCard(title: 'Тестовая карточка', onTap: () {}),
           ),
         ),
       );
@@ -19,7 +16,9 @@ void main() {
       expect(find.text('Тестовая карточка'), findsOneWidget);
     });
 
-    testWidgets('отображает подзаголовок когда передан', (WidgetTester tester) async {
+    testWidgets('отображает подзаголовок когда передан', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -36,7 +35,9 @@ void main() {
       expect(find.text('5 фраз'), findsOneWidget);
     });
 
-    testWidgets('отображает иконку когда передана', (WidgetTester tester) async {
+    testWidgets('отображает иконку когда передана', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -52,14 +53,13 @@ void main() {
       expect(find.byIcon(Icons.folder), findsOneWidget);
     });
 
-    testWidgets('не отображает иконку когда не передана', (WidgetTester tester) async {
+    testWidgets('не отображает иконку когда не передана', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ItemCard(
-              title: 'Тестовая карточка',
-              onTap: () {},
-            ),
+            body: ItemCard(title: 'Тестовая карточка', onTap: () {}),
           ),
         ),
       );
@@ -69,7 +69,7 @@ void main() {
 
     testWidgets('вызывает onTap при нажатии', (WidgetTester tester) async {
       bool tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -85,7 +85,9 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('показывает контекстное меню при долгом нажатии', (WidgetTester tester) async {
+    testWidgets('показывает контекстное меню при долгом нажатии', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -106,7 +108,9 @@ void main() {
       expect(find.text('Удалить'), findsOneWidget);
     });
 
-    testWidgets('показывает пункт воспроизведения когда передан onPlay', (WidgetTester tester) async {
+    testWidgets('показывает пункт воспроизведения когда передан onPlay', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -129,14 +133,13 @@ void main() {
       expect(find.text('Удалить'), findsOneWidget);
     });
 
-    testWidgets('не показывает контекстное меню когда нет действий', (WidgetTester tester) async {
+    testWidgets('не показывает контекстное меню когда нет действий', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ItemCard(
-              title: 'Тестовая карточка',
-              onTap: () {},
-            ),
+            body: ItemCard(title: 'Тестовая карточка', onTap: () {}),
           ),
         ),
       );
@@ -148,9 +151,11 @@ void main() {
       expect(find.text('Удалить'), findsNothing);
     });
 
-    testWidgets('вызывает onEdit при нажатии на редактировать', (WidgetTester tester) async {
+    testWidgets('вызывает onEdit при нажатии на редактировать', (
+      WidgetTester tester,
+    ) async {
       bool edited = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -165,14 +170,16 @@ void main() {
 
       await tester.longPress(find.byType(ItemCard));
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.text('Редактировать'));
       expect(edited, isTrue);
     });
 
-    testWidgets('вызывает onDelete при нажатии на удалить', (WidgetTester tester) async {
+    testWidgets('вызывает onDelete при нажатии на удалить', (
+      WidgetTester tester,
+    ) async {
       bool deleted = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -187,14 +194,16 @@ void main() {
 
       await tester.longPress(find.byType(ItemCard));
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.text('Удалить'));
       expect(deleted, isTrue);
     });
 
-    testWidgets('вызывает onPlay при нажатии на воспроизвести', (WidgetTester tester) async {
+    testWidgets('вызывает onPlay при нажатии на воспроизвести', (
+      WidgetTester tester,
+    ) async {
       bool played = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -209,21 +218,21 @@ void main() {
 
       await tester.longPress(find.byType(ItemCard));
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.text('Воспроизвести'));
       expect(played, isTrue);
     });
 
-    testWidgets('ограничивает текст заголовка двумя строками', (WidgetTester tester) async {
-      const longTitle = 'Очень длинный заголовок который должен быть ограничен двумя строками и показать многоточие';
-      
+    testWidgets('ограничивает текст заголовка двумя строками', (
+      WidgetTester tester,
+    ) async {
+      const longTitle =
+          'Очень длинный заголовок который должен быть ограничен двумя строками и показать многоточие';
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ItemCard(
-              title: longTitle,
-              onTap: () {},
-            ),
+            body: ItemCard(title: longTitle, onTap: () {}),
           ),
         ),
       );

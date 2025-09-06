@@ -7,12 +7,10 @@ class LoginRequest {
   final String email;
   final String password;
 
-  LoginRequest({
-    required this.email,
-    required this.password,
-  });
+  LoginRequest({required this.email, required this.password});
 
-  factory LoginRequest.fromJson(Map<String, dynamic> json) => _$LoginRequestFromJson(json);
+  factory LoginRequest.fromJson(Map<String, dynamic> json) =>
+      _$LoginRequestFromJson(json);
   Map<String, dynamic> toJson() => _$LoginRequestToJson(this);
 }
 
@@ -21,12 +19,10 @@ class RegisterRequest {
   final String email;
   final String password;
 
-  RegisterRequest({
-    required this.email,
-    required this.password,
-  });
+  RegisterRequest({required this.email, required this.password});
 
-  factory RegisterRequest.fromJson(Map<String, dynamic> json) => _$RegisterRequestFromJson(json);
+  factory RegisterRequest.fromJson(Map<String, dynamic> json) =>
+      _$RegisterRequestFromJson(json);
   Map<String, dynamic> toJson() => _$RegisterRequestToJson(this);
 }
 
@@ -35,12 +31,10 @@ class LoginUser {
   final String id;
   final String email;
 
-  LoginUser({
-    required this.id,
-    required this.email,
-  });
+  LoginUser({required this.id, required this.email});
 
-  factory LoginUser.fromJson(Map<String, dynamic> json) => _$LoginUserFromJson(json);
+  factory LoginUser.fromJson(Map<String, dynamic> json) =>
+      _$LoginUserFromJson(json);
   Map<String, dynamic> toJson() => _$LoginUserToJson(this);
 }
 
@@ -50,13 +44,10 @@ class LoginResponse {
   final String? refreshToken;
   final LoginUser user;
 
-  LoginResponse({
-    required this.token,
-    this.refreshToken,
-    required this.user,
-  });
+  LoginResponse({required this.token, this.refreshToken, required this.user});
 
-  factory LoginResponse.fromJson(Map<String, dynamic> json) => _$LoginResponseFromJson(json);
+  factory LoginResponse.fromJson(Map<String, dynamic> json) =>
+      _$LoginResponseFromJson(json);
   Map<String, dynamic> toJson() => _$LoginResponseToJson(this);
 }
 
@@ -65,12 +56,10 @@ class VerifyEmailRequest {
   final String email;
   final String code;
 
-  VerifyEmailRequest({
-    required this.email,
-    required this.code,
-  });
+  VerifyEmailRequest({required this.email, required this.code});
 
-  factory VerifyEmailRequest.fromJson(Map<String, dynamic> json) => _$VerifyEmailRequestFromJson(json);
+  factory VerifyEmailRequest.fromJson(Map<String, dynamic> json) =>
+      _$VerifyEmailRequestFromJson(json);
   Map<String, dynamic> toJson() => _$VerifyEmailRequestToJson(this);
 }
 
@@ -78,11 +67,10 @@ class VerifyEmailRequest {
 class ResetPasswordRequest {
   final String email;
 
-  ResetPasswordRequest({
-    required this.email,
-  });
+  ResetPasswordRequest({required this.email});
 
-  factory ResetPasswordRequest.fromJson(Map<String, dynamic> json) => _$ResetPasswordRequestFromJson(json);
+  factory ResetPasswordRequest.fromJson(Map<String, dynamic> json) =>
+      _$ResetPasswordRequestFromJson(json);
   Map<String, dynamic> toJson() => _$ResetPasswordRequestToJson(this);
 }
 
@@ -91,12 +79,10 @@ class ResetPasswordVerifyRequest {
   final String email;
   final String code;
 
-  ResetPasswordVerifyRequest({
-    required this.email,
-    required this.code,
-  });
+  ResetPasswordVerifyRequest({required this.email, required this.code});
 
-  factory ResetPasswordVerifyRequest.fromJson(Map<String, dynamic> json) => _$ResetPasswordVerifyRequestFromJson(json);
+  factory ResetPasswordVerifyRequest.fromJson(Map<String, dynamic> json) =>
+      _$ResetPasswordVerifyRequestFromJson(json);
   Map<String, dynamic> toJson() => _$ResetPasswordVerifyRequestToJson(this);
 }
 
@@ -112,7 +98,8 @@ class ResetPasswordConfirmRequest {
     required this.password,
   });
 
-  factory ResetPasswordConfirmRequest.fromJson(Map<String, dynamic> json) => _$ResetPasswordConfirmRequestFromJson(json);
+  factory ResetPasswordConfirmRequest.fromJson(Map<String, dynamic> json) =>
+      _$ResetPasswordConfirmRequestFromJson(json);
   Map<String, dynamic> toJson() => _$ResetPasswordConfirmRequestToJson(this);
 }
 
@@ -120,10 +107,9 @@ class ResetPasswordConfirmRequest {
 class RefreshTokenRequest {
   final String refreshToken;
 
-  RefreshTokenRequest({
-    required this.refreshToken,
-  });
+  RefreshTokenRequest({required this.refreshToken});
 
-  factory RefreshTokenRequest.fromJson(Map<String, dynamic> json) => _$RefreshTokenRequestFromJson(json);
+  factory RefreshTokenRequest.fromJson(Map<String, dynamic> json) =>
+      _$RefreshTokenRequestFromJson(json);
   Map<String, dynamic> toJson() => _$RefreshTokenRequestToJson(this);
 }

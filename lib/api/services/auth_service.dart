@@ -9,27 +9,31 @@ class AuthService {
   Future<LoginResponse> login(String email, String password) async {
     try {
       developer.log('Начинаю процесс авторизации для email: $email');
-      
+
       final request = LoginRequest(email: email, password: password);
       developer.log('Отправляю запрос на /login');
-      
+
       final response = await _apiClient.post('/login', body: request.toJson());
       developer.log('Получен ответ от сервера: ${response.toString()}');
-      
+
       final loginResponse = LoginResponse.fromJson(response);
       developer.log('Ответ успешно десериализован');
-      
+
       developer.log('Сохраняю токен в TokenManager');
       await TokenManager.saveToken(loginResponse.token);
-      
-      if (loginResponse.refreshToken != null && loginResponse.refreshToken!.isNotEmpty) {
+
+      if (loginResponse.refreshToken != null &&
+          loginResponse.refreshToken!.isNotEmpty) {
         developer.log('Сохраняю refresh token');
         await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
       }
-      
+
       developer.log('Сохраняю информацию о пользователе');
-      await TokenManager.saveUserInfo(loginResponse.user.id, loginResponse.user.email);
-      
+      await TokenManager.saveUserInfo(
+        loginResponse.user.id,
+        loginResponse.user.email,
+      );
+
       developer.log('Авторизация завершена успешно');
       return loginResponse;
     } catch (e, stackTrace) {
@@ -69,20 +73,30 @@ class AuthService {
   Future<void> verifyPasswordResetOTP(String email, String code) async {
     try {
       final request = ResetPasswordVerifyRequest(email: email, code: code);
-      await _apiClient.post('/auth/reset-password/verify', body: request.toJson());
+      await _apiClient.post(
+        '/auth/reset-password/verify',
+        body: request.toJson(),
+      );
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> confirmPasswordReset(String email, String code, String newPassword) async {
+  Future<void> confirmPasswordReset(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
     try {
       final request = ResetPasswordConfirmRequest(
         email: email,
         code: code,
         password: newPassword,
       );
-      await _apiClient.post('/auth/reset-password/confirm', body: request.toJson());
+      await _apiClient.post(
+        '/auth/reset-password/confirm',
+        body: request.toJson(),
+      );
     } catch (e) {
       rethrow;
     }
@@ -116,15 +130,19 @@ class AuthService {
       }
 
       final request = RefreshTokenRequest(refreshToken: refreshToken);
-      final response = await _apiClient.post('/refresh', body: request.toJson());
-      
+      final response = await _apiClient.post(
+        '/refresh',
+        body: request.toJson(),
+      );
+
       final loginResponse = LoginResponse.fromJson(response);
-      
+
       await TokenManager.saveToken(loginResponse.token);
-      if (loginResponse.refreshToken != null && loginResponse.refreshToken!.isNotEmpty) {
+      if (loginResponse.refreshToken != null &&
+          loginResponse.refreshToken!.isNotEmpty) {
         await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
       }
-      
+
       return loginResponse;
     } catch (e) {
       rethrow;

@@ -9,12 +9,10 @@ class CreateStatementRequest {
   @JsonKey(name: 'categoryId')
   final String categoryId;
 
-  CreateStatementRequest({
-    required this.title,
-    required this.categoryId,
-  });
+  CreateStatementRequest({required this.title, required this.categoryId});
 
-  factory CreateStatementRequest.fromJson(Map<String, dynamic> json) => _$CreateStatementRequestFromJson(json);
+  factory CreateStatementRequest.fromJson(Map<String, dynamic> json) =>
+      _$CreateStatementRequestFromJson(json);
   Map<String, dynamic> toJson() => _$CreateStatementRequestToJson(this);
 }
 
@@ -25,12 +23,10 @@ class UpdateStatementRequest {
   @JsonKey(name: 'categoryId')
   final String categoryId;
 
-  UpdateStatementRequest({
-    required this.title,
-    required this.categoryId,
-  });
+  UpdateStatementRequest({required this.title, required this.categoryId});
 
-  factory UpdateStatementRequest.fromJson(Map<String, dynamic> json) => _$UpdateStatementRequestFromJson(json);
+  factory UpdateStatementRequest.fromJson(Map<String, dynamic> json) =>
+      _$UpdateStatementRequestFromJson(json);
   Map<String, dynamic> toJson() => _$UpdateStatementRequestToJson(this);
 }
 
@@ -38,11 +34,10 @@ class UpdateStatementRequest {
 class CreateCategoryRequest {
   final String title;
 
-  CreateCategoryRequest({
-    required this.title,
-  });
+  CreateCategoryRequest({required this.title});
 
-  factory CreateCategoryRequest.fromJson(Map<String, dynamic> json) => _$CreateCategoryRequestFromJson(json);
+  factory CreateCategoryRequest.fromJson(Map<String, dynamic> json) =>
+      _$CreateCategoryRequestFromJson(json);
   Map<String, dynamic> toJson() => _$CreateCategoryRequestToJson(this);
 }
 
@@ -50,10 +45,9 @@ class CreateCategoryRequest {
 class UpdateCategoryRequest {
   final String title;
 
-  UpdateCategoryRequest({
-    required this.title,
-  });
+  UpdateCategoryRequest({required this.title});
 
-  factory UpdateCategoryRequest.fromJson(Map<String, dynamic> json) => _$UpdateCategoryRequestFromJson(json);
+  factory UpdateCategoryRequest.fromJson(Map<String, dynamic> json) =>
+      _$UpdateCategoryRequestFromJson(json);
   Map<String, dynamic> toJson() => _$UpdateCategoryRequestToJson(this);
 }

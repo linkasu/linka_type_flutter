@@ -11,7 +11,9 @@ class DataService {
     try {
       final response = await _apiClient.get('/statements');
       final List<dynamic> statementsJson = response['statements'] ?? [];
-      final statements = statementsJson.map((json) => Statement.fromJson(json)).toList();
+      final statements = statementsJson
+          .map((json) => Statement.fromJson(json))
+          .toList();
       return statements;
     } catch (e) {
       rethrow;
@@ -29,18 +31,34 @@ class DataService {
 
   Future<Statement> createStatement(String title, String categoryId) async {
     try {
-      final request = CreateStatementRequest(title: title, categoryId: categoryId);
-      final response = await _apiClient.post('/statements', body: request.toJson());
+      final request = CreateStatementRequest(
+        title: title,
+        categoryId: categoryId,
+      );
+      final response = await _apiClient.post(
+        '/statements',
+        body: request.toJson(),
+      );
       return Statement.fromJson(response);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<Statement> updateStatement(String id, String title, String categoryId) async {
+  Future<Statement> updateStatement(
+    String id,
+    String title,
+    String categoryId,
+  ) async {
     try {
-      final request = UpdateStatementRequest(title: title, categoryId: categoryId);
-      final response = await _apiClient.put('/statements/$id', body: request.toJson());
+      final request = UpdateStatementRequest(
+        title: title,
+        categoryId: categoryId,
+      );
+      final response = await _apiClient.put(
+        '/statements/$id',
+        body: request.toJson(),
+      );
       return Statement.fromJson(response);
     } catch (e) {
       rethrow;
@@ -60,7 +78,9 @@ class DataService {
     try {
       final response = await _apiClient.get('/categories');
       final List<dynamic> categoriesJson = response['categories'] ?? [];
-      final categories = categoriesJson.map((json) => Category.fromJson(json)).toList();
+      final categories = categoriesJson
+          .map((json) => Category.fromJson(json))
+          .toList();
       return categories;
     } catch (e) {
       rethrow;
@@ -79,7 +99,10 @@ class DataService {
   Future<Category> createCategory(String title) async {
     try {
       final request = CreateCategoryRequest(title: title);
-      final response = await _apiClient.post('/categories', body: request.toJson());
+      final response = await _apiClient.post(
+        '/categories',
+        body: request.toJson(),
+      );
       return Category.fromJson(response);
     } catch (e) {
       rethrow;
@@ -89,7 +112,10 @@ class DataService {
   Future<Category> updateCategory(String id, String title) async {
     try {
       final request = UpdateCategoryRequest(title: title);
-      final response = await _apiClient.put('/categories/$id', body: request.toJson());
+      final response = await _apiClient.put(
+        '/categories/$id',
+        body: request.toJson(),
+      );
       return Category.fromJson(response);
     } catch (e) {
       rethrow;

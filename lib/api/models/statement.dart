@@ -19,6 +19,7 @@ class Statement {
     required this.categoryId,
   });
 
-  factory Statement.fromJson(Map<String, dynamic> json) => _$StatementFromJson(json);
+  factory Statement.fromJson(Map<String, dynamic> json) =>
+      _$StatementFromJson(json);
   Map<String, dynamic> toJson() => _$StatementToJson(this);
 }

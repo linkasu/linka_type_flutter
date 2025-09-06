@@ -63,7 +63,9 @@ class _PhraseBankState extends State<PhraseBank> {
                 const Icon(Icons.library_books, color: AppTheme.primaryColor),
                 const SizedBox(width: 8),
                 Text(
-                  _showCategories ? 'Выберите категорию' : 'Фразы: ${_selectedCategory?.title ?? ""}',
+                  _showCategories
+                      ? 'Выберите категорию'
+                      : 'Фразы: ${_selectedCategory?.title ?? ""}',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -85,7 +87,7 @@ class _PhraseBankState extends State<PhraseBank> {
               ],
             ),
           ),
-          
+
           // Контент
           Expanded(
             child: _showCategories
@@ -106,9 +108,15 @@ class _PhraseBankState extends State<PhraseBank> {
           children: [
             Icon(Icons.folder_outlined, size: 64, color: Colors.grey),
             SizedBox(height: 16),
-            Text('Нет категорий', style: TextStyle(fontSize: 18, color: Colors.grey)),
+            Text(
+              'Нет категорий',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
             SizedBox(height: 8),
-            Text('Нажмите + чтобы добавить категорию', style: TextStyle(color: Colors.grey)),
+            Text(
+              'Нажмите + чтобы добавить категорию',
+              style: TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       );
@@ -125,8 +133,10 @@ class _PhraseBankState extends State<PhraseBank> {
       itemCount: widget.categories.length,
       itemBuilder: (context, index) {
         final category = widget.categories[index];
-        final statementCount = widget.statements.where((s) => s.categoryId == category.id).length;
-        
+        final statementCount = widget.statements
+            .where((s) => s.categoryId == category.id)
+            .length;
+
         return CategoryCard(
           category: category,
           statementCount: statementCount,
@@ -140,8 +150,10 @@ class _PhraseBankState extends State<PhraseBank> {
 
   // Построение сетки фраз
   Widget _buildStatementsGrid() {
-    final statements = widget.statements.where((s) => s.categoryId == _selectedCategory!.id).toList();
-    
+    final statements = widget.statements
+        .where((s) => s.categoryId == _selectedCategory!.id)
+        .toList();
+
     if (statements.isEmpty) {
       return const Center(
         child: Column(
@@ -149,9 +161,15 @@ class _PhraseBankState extends State<PhraseBank> {
           children: [
             Icon(Icons.library_books_outlined, size: 64, color: Colors.grey),
             SizedBox(height: 16),
-            Text('Нет фраз в этой категории', style: TextStyle(fontSize: 18, color: Colors.grey)),
+            Text(
+              'Нет фраз в этой категории',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
             SizedBox(height: 8),
-            Text('Нажмите + чтобы добавить фразу', style: TextStyle(color: Colors.grey)),
+            Text(
+              'Нажмите + чтобы добавить фразу',
+              style: TextStyle(color: Colors.grey),
+            ),
           ],
         ),
       );
@@ -168,7 +186,7 @@ class _PhraseBankState extends State<PhraseBank> {
       itemCount: statements.length,
       itemBuilder: (context, index) {
         final statement = statements[index];
-        
+
         return StatementCard(
           statement: statement,
           onTap: () => widget.onSayStatement(statement),
@@ -178,5 +196,4 @@ class _PhraseBankState extends State<PhraseBank> {
       },
     );
   }
-
 }

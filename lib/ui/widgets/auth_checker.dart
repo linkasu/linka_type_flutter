@@ -24,7 +24,7 @@ class _AuthCheckerState extends State<AuthChecker> {
   Future<void> _checkAuthStatus() async {
     try {
       final isLoggedIn = await _authService.isLoggedIn();
-      
+
       setState(() {
         _isLoggedIn = isLoggedIn;
         _isLoading = false;
@@ -40,11 +40,7 @@ class _AuthCheckerState extends State<AuthChecker> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return _isLoggedIn ? const HomeScreen() : const LoginScreen();

@@ -10,8 +10,9 @@ void main() {
 
     setUpAll(() async {
       // Инициализируем SharedPreferences для тестов
-      const MethodChannel('plugins.flutter.io/shared_preferences')
-          .setMockMethodCallHandler((MethodCall methodCall) async {
+      const MethodChannel(
+        'plugins.flutter.io/shared_preferences',
+      ).setMockMethodCallHandler((MethodCall methodCall) async {
         if (methodCall.method == 'getAll') {
           return <String, Object>{}; // Пустые настройки
         }
@@ -32,7 +33,7 @@ void main() {
     group('YandexVoice Tests', () {
       test('should create YandexVoice with correct properties', () {
         final voice = YandexVoice(voiceURI: 'test_voice', text: 'Test Voice');
-        
+
         expect(voice.voiceURI, equals('test_voice'));
         expect(voice.text, equals('Test Voice'));
       });
@@ -46,7 +47,7 @@ void main() {
           locale: 'ru-RU',
           isDefault: true,
         );
-        
+
         expect(voice.voiceURI, equals('test_voice'));
         expect(voice.text, equals('Test Voice'));
         expect(voice.locale, equals('ru-RU'));
@@ -54,11 +55,8 @@ void main() {
       });
 
       test('should create TTSVoice with default values', () {
-        final voice = TTSVoice(
-          voiceURI: 'test_voice',
-          text: 'Test Voice',
-        );
-        
+        final voice = TTSVoice(voiceURI: 'test_voice', text: 'Test Voice');
+
         expect(voice.locale, isNull);
         expect(voice.isDefault, isFalse);
       });
@@ -68,7 +66,7 @@ void main() {
       test('should return same instance', () {
         final instance1 = TTSService.instance;
         final instance2 = TTSService.instance;
-        
+
         expect(identical(instance1, instance2), isTrue);
       });
     });
@@ -76,14 +74,14 @@ void main() {
     group('Yandex Voices Tests', () {
       test('should return correct number of Yandex voices', () {
         final voices = ttsService.getYandexVoices();
-        
+
         expect(voices.length, equals(7));
       });
 
       test('should contain expected Yandex voices', () {
         final voices = ttsService.getYandexVoices();
         final voiceURIs = voices.map((v) => v.voiceURI).toList();
-        
+
         expect(voiceURIs, contains('zahar'));
         expect(voiceURIs, contains('ermil'));
         expect(voiceURIs, contains('jane'));
@@ -96,7 +94,7 @@ void main() {
       test('should have correct voice names', () {
         final voices = ttsService.getYandexVoices();
         final voiceMap = {for (var v in voices) v.voiceURI: v.text};
-        
+
         expect(voiceMap['zahar'], equals('Захар'));
         expect(voiceMap['ermil'], equals('Емиль'));
         expect(voiceMap['jane'], equals('Джейн'));
@@ -156,7 +154,7 @@ void main() {
     group('Voice Selection Tests', () {
       test('should get selected voice', () async {
         final voice = await ttsService.getSelectedVoice();
-        
+
         expect(voice.voiceURI, isNotEmpty);
         expect(voice.text, isNotEmpty);
       });
@@ -164,7 +162,7 @@ void main() {
       test('should set voice correctly', () async {
         await ttsService.setVoice('zahar');
         final selectedVoice = await ttsService.getSelectedVoice();
-        
+
         expect(selectedVoice.voiceURI, equals('zahar'));
         expect(selectedVoice.text, equals('Захар'));
       });
@@ -172,7 +170,7 @@ void main() {
       test('should handle invalid voice gracefully', () async {
         await ttsService.setVoice('invalid_voice');
         final selectedVoice = await ttsService.getSelectedVoice();
-        
+
         // Должен вернуть первый доступный голос
         expect(selectedVoice.voiceURI, isNotEmpty);
         expect(selectedVoice.text, isNotEmpty);

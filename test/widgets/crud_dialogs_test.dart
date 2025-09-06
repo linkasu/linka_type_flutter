@@ -4,9 +4,11 @@ import 'package:linka_type_flutter/ui/widgets/crud_dialogs.dart';
 
 void main() {
   group('CrudDialogs', () {
-    testWidgets('showTextInputDialog отображает диалог с полем ввода', (WidgetTester tester) async {
+    testWidgets('showTextInputDialog отображает диалог с полем ввода', (
+      WidgetTester tester,
+    ) async {
       String? result;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -36,9 +38,11 @@ void main() {
       expect(find.text('Сохранить'), findsOneWidget);
     });
 
-    testWidgets('showTextInputDialog возвращает null при отмене', (WidgetTester tester) async {
+    testWidgets('showTextInputDialog возвращает null при отмене', (
+      WidgetTester tester,
+    ) async {
       String? result;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -67,9 +71,11 @@ void main() {
       expect(result, isNull);
     });
 
-    testWidgets('showTextInputDialog возвращает текст при сохранении', (WidgetTester tester) async {
+    testWidgets('showTextInputDialog возвращает текст при сохранении', (
+      WidgetTester tester,
+    ) async {
       String? result;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -99,9 +105,11 @@ void main() {
       expect(result, equals('Тестовый текст'));
     });
 
-    testWidgets('showTextInputDialog не сохраняет пустой текст', (WidgetTester tester) async {
+    testWidgets('showTextInputDialog не сохраняет пустой текст', (
+      WidgetTester tester,
+    ) async {
       String? result;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -132,7 +140,9 @@ void main() {
       expect(find.text('Тестовый заголовок'), findsOneWidget);
     });
 
-    testWidgets('showTextInputDialog показывает начальное значение', (WidgetTester tester) async {
+    testWidgets('showTextInputDialog показывает начальное значение', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -160,9 +170,11 @@ void main() {
       expect(textField.controller?.text, equals('Начальное значение'));
     });
 
-    testWidgets('showConfirmDialog отображает диалог подтверждения', (WidgetTester tester) async {
+    testWidgets('showConfirmDialog отображает диалог подтверждения', (
+      WidgetTester tester,
+    ) async {
       bool? result;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -191,9 +203,11 @@ void main() {
       expect(find.text('Удалить'), findsOneWidget);
     });
 
-    testWidgets('showConfirmDialog возвращает false при отмене', (WidgetTester tester) async {
+    testWidgets('showConfirmDialog возвращает false при отмене', (
+      WidgetTester tester,
+    ) async {
       bool? result;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -222,9 +236,11 @@ void main() {
       expect(result, isFalse);
     });
 
-    testWidgets('showConfirmDialog возвращает true при подтверждении', (WidgetTester tester) async {
+    testWidgets('showConfirmDialog возвращает true при подтверждении', (
+      WidgetTester tester,
+    ) async {
       bool? result;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -253,10 +269,12 @@ void main() {
       expect(result, isTrue);
     });
 
-    testWidgets('showContextMenu отображает контекстное меню', (WidgetTester tester) async {
+    testWidgets('showContextMenu отображает контекстное меню', (
+      WidgetTester tester,
+    ) async {
       bool item1Tapped = false;
       bool item2Tapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -295,9 +313,11 @@ void main() {
       expect(find.byIcon(Icons.delete), findsOneWidget);
     });
 
-    testWidgets('showContextMenu вызывает onTap при нажатии на элемент', (WidgetTester tester) async {
+    testWidgets('showContextMenu вызывает onTap при нажатии на элемент', (
+      WidgetTester tester,
+    ) async {
       bool itemTapped = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

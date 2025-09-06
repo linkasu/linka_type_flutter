@@ -4,6 +4,7 @@ import 'dart:io';
 import '../../services/tts_service.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shortcuts_dialog.dart';
 import 'login_screen.dart';
 import 'reset_password_screen.dart';
 
@@ -552,6 +553,18 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                   const SizedBox(height: 16),
                   const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.keyboard),
+                    title: const Text('Горячие клавиши'),
+                    subtitle: const Text('Показать список доступных шорткатов'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => const ShortcutsDialog(),
+                      );
+                    },
+                  ),
                   ListTile(
                     leading: const Icon(Icons.help_outline),
                     title: const Text('Справка'),

@@ -288,64 +288,63 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('LINKa напиши'),
-          backgroundColor: AppTheme.primaryColor,
-          foregroundColor: Colors.white,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                      builder: (context) => const SettingsScreen()),
-                );
-              },
-              tooltip: 'Настройки',
-            ),
-          ],
-        ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : LayoutBuilder(
-                builder: (context, constraints) {
-                  return Column(
-                    children: [
-                      // Блок ввода текста
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: TextInputBlock(
-                          onSayText: _sayText,
-                          onDownloadText: _downloadText,
-                        ),
+      appBar: AppBar(
+        title: const Text('LINKa напиши'),
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+            tooltip: 'Настройки',
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                return Column(
+                  children: [
+                    // Блок ввода текста
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextInputBlock(
+                        onSayText: _sayText,
+                        onDownloadText: _downloadText,
                       ),
+                    ),
 
-                      // Банк фраз
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
-                          child: Focus(
-                            focusNode: _phraseBankFocus,
-                            child: PhraseBank(
-                              categories: _categories,
-                              statements: _statements,
-                              onSayStatement: _sayStatement,
-                              onEditStatement: _editStatement,
-                              onDeleteStatement: _deleteStatement,
-                              onEditCategory: _editCategory,
-                              onDeleteCategory: _deleteCategory,
-                              onAddStatement: _addStatement,
-                              onAddCategory: _addCategory,
-                              selectedCategory: _selectedCategory,
-                              onCategorySelected: _onCategorySelected,
-                            ),
+                    // Банк фраз
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+                        child: Focus(
+                          focusNode: _phraseBankFocus,
+                          child: PhraseBank(
+                            categories: _categories,
+                            statements: _statements,
+                            onSayStatement: _sayStatement,
+                            onEditStatement: _editStatement,
+                            onDeleteStatement: _deleteStatement,
+                            onEditCategory: _editCategory,
+                            onDeleteCategory: _deleteCategory,
+                            onAddStatement: _addStatement,
+                            onAddCategory: _addCategory,
+                            selectedCategory: _selectedCategory,
+                            onCategorySelected: _onCategorySelected,
                           ),
                         ),
                       ),
-                    ],
-                  );
-                },
-              ),
+                    ),
+                  ],
+                );
+              },
+            ),
     );
   }
 

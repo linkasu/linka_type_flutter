@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../../api/models/category.dart';
 import '../../api/models/statement.dart';
+import 'category_card.dart';
+import 'statement_card.dart';
 
 class PhraseBank extends StatefulWidget {
   final List<Category> categories;
@@ -12,6 +14,7 @@ class PhraseBank extends StatefulWidget {
   final Function(Category) onEditCategory;
   final Function(Category) onDeleteCategory;
   final VoidCallback onAddStatement;
+  final VoidCallback onAddCategory;
   final Category? selectedCategory;
   final Function(Category?) onCategorySelected;
 
@@ -25,6 +28,7 @@ class PhraseBank extends StatefulWidget {
     required this.onEditCategory,
     required this.onDeleteCategory,
     required this.onAddStatement,
+    required this.onAddCategory,
     this.selectedCategory,
     required this.onCategorySelected,
   });
@@ -66,7 +70,13 @@ class _PhraseBankState extends State<PhraseBank> {
                   ),
                 ),
                 const Spacer(),
-                if (!_showCategories)
+                if (_showCategories)
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: widget.onAddCategory,
+                    tooltip: 'Добавить категорию',
+                  )
+                else
                   IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: widget.onAddStatement,
@@ -98,7 +108,7 @@ class _PhraseBankState extends State<PhraseBank> {
             SizedBox(height: 16),
             Text('Нет категорий', style: TextStyle(fontSize: 18, color: Colors.grey)),
             SizedBox(height: 8),
-            Text('Добавьте категории в настройках', style: TextStyle(color: Colors.grey)),
+            Text('Нажмите + чтобы добавить категорию', style: TextStyle(color: Colors.grey)),
           ],
         ),
       );
@@ -108,7 +118,7 @@ class _PhraseBankState extends State<PhraseBank> {
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 2.5,
+        childAspectRatio: 4.5,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
@@ -117,47 +127,12 @@ class _PhraseBankState extends State<PhraseBank> {
         final category = widget.categories[index];
         final statementCount = widget.statements.where((s) => s.categoryId == category.id).length;
         
-        return Card(
-          child: GestureDetector(
-            onTap: () {
-              widget.onCategorySelected(category);
-            },
-            onLongPress: () => _showCategoryContextMenu(context, category),
-            onSecondaryTapDown: (details) => _showCategoryContextMenu(context, category),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.folder, color: AppTheme.primaryColor),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          category.title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '$statementCount фраз',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        return CategoryCard(
+          category: category,
+          statementCount: statementCount,
+          onTap: () => widget.onCategorySelected(category),
+          onEdit: () => widget.onEditCategory(category),
+          onDelete: () => widget.onDeleteCategory(category),
         );
       },
     );
@@ -194,96 +169,14 @@ class _PhraseBankState extends State<PhraseBank> {
       itemBuilder: (context, index) {
         final statement = statements[index];
         
-        return GestureDetector(
+        return StatementCard(
+          statement: statement,
           onTap: () => widget.onSayStatement(statement),
-          onLongPress: () => _showStatementContextMenu(context, statement),
-          onSecondaryTapDown: (details) => _showStatementContextMenu(context, statement),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Center(
-                child: Text(
-                  statement.title,
-                  style: const TextStyle(fontSize: 14),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
+          onEdit: () => widget.onEditStatement(statement),
+          onDelete: () => widget.onDeleteStatement(statement),
         );
       },
     );
   }
 
-  // Контекстное меню для категории
-  void _showCategoryContextMenu(BuildContext context, Category category) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Редактировать'),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onEditCategory(category);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Удалить', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onDeleteCategory(category);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Контекстное меню для фразы
-  void _showStatementContextMenu(BuildContext context, Statement statement) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.play_arrow),
-              title: const Text('Воспроизвести'),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onSayStatement(statement);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Редактировать'),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onEditStatement(statement);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Удалить', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onDeleteStatement(statement);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

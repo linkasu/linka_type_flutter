@@ -36,6 +36,12 @@ class TTSService {
     return _instance!;
   }
 
+  // Метод для тестов - сброс singleton
+  static void resetInstance() {
+    _instance?.dispose();
+    _instance = null;
+  }
+
   late SharedPreferences _prefs;
 
   final StreamController<String> _eventController =

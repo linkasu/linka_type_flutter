@@ -46,7 +46,8 @@ class AuthService {
   Future<RegisterResponse> register(String email, String password) async {
     try {
       final request = RegisterRequest(email: email, password: password);
-      final response = await _apiClient.post('/register', body: request.toJson());
+      final response =
+          await _apiClient.post('/register', body: request.toJson());
       return RegisterResponse.fromJson(response);
     } catch (e) {
       rethrow;
@@ -56,7 +57,8 @@ class AuthService {
   Future<VerifyEmailResponse> verifyEmail(String email, String code) async {
     try {
       final request = VerifyEmailRequest(email: email, code: code);
-      final response = await _apiClient.post('/verify-email', body: request.toJson());
+      final response =
+          await _apiClient.post('/verify-email', body: request.toJson());
       return VerifyEmailResponse.fromJson(response);
     } catch (e) {
       rethrow;
@@ -66,14 +68,16 @@ class AuthService {
   Future<ResetPasswordResponse> requestPasswordReset(String email) async {
     try {
       final request = ResetPasswordRequest(email: email);
-      final response = await _apiClient.post('/reset-password', body: request.toJson());
+      final response =
+          await _apiClient.post('/reset-password', body: request.toJson());
       return ResetPasswordResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<ResetPasswordVerifyResponse> verifyPasswordResetOTP(String email, String code) async {
+  Future<ResetPasswordVerifyResponse> verifyPasswordResetOTP(
+      String email, String code) async {
     try {
       final request = ResetPasswordVerifyRequest(email: email, code: code);
       final response = await _apiClient.post(

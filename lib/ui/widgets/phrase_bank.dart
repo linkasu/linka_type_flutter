@@ -133,9 +133,8 @@ class _PhraseBankState extends State<PhraseBank> {
       itemCount: widget.categories.length,
       itemBuilder: (context, index) {
         final category = widget.categories[index];
-        final statementCount = widget.statements
-            .where((s) => s.categoryId == category.id)
-            .length;
+        final statementCount =
+            widget.statements.where((s) => s.categoryId == category.id).length;
 
         return CategoryCard(
           category: category,

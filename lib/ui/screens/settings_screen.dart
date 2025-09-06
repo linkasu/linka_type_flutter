@@ -168,7 +168,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                             ),
                             Text(
                               'Статус: $_ttsStatus',
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
                                   ?.copyWith(
                                     color: AppTheme.textSecondaryColor,
                                   ),
@@ -276,8 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   Text('Голос', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    initialValue:
-                        _selectedVoice.isNotEmpty &&
+                    initialValue: _selectedVoice.isNotEmpty &&
                             ((_useYandex || Platform.isLinux)
                                 ? _yandexVoices.any(
                                     (v) => v.voiceURI == _selectedVoice,
@@ -291,37 +292,36 @@ class _SettingsScreenState extends State<SettingsScreen>
                       labelText: 'Выберите голос',
                       border: OutlineInputBorder(),
                     ),
-                    items:
-                        [
-                              if (_useYandex || Platform.isLinux) ...[
-                                const DropdownMenuItem(
-                                  value: '',
-                                  child: Text('Яндекс голоса'),
-                                ),
-                                ..._yandexVoices.map(
-                                  (voice) => DropdownMenuItem(
-                                    value: voice.voiceURI,
-                                    child: Text('${voice.text} (Яндекс)'),
-                                  ),
-                                ),
-                              ] else ...[
-                                const DropdownMenuItem(
-                                  value: '',
-                                  child: Text('Системные голоса'),
-                                ),
-                                ..._offlineVoices.map(
-                                  (voice) => DropdownMenuItem(
-                                    value: voice.voiceURI,
-                                    child: Text('${voice.text} (Системный)'),
-                                  ),
-                                ),
-                              ],
-                            ]
-                            .where(
-                              (item) =>
-                                  item.value == null || item.value!.isNotEmpty,
-                            )
-                            .toList(),
+                    items: [
+                      if (_useYandex || Platform.isLinux) ...[
+                        const DropdownMenuItem(
+                          value: '',
+                          child: Text('Яндекс голоса'),
+                        ),
+                        ..._yandexVoices.map(
+                          (voice) => DropdownMenuItem(
+                            value: voice.voiceURI,
+                            child: Text('${voice.text} (Яндекс)'),
+                          ),
+                        ),
+                      ] else ...[
+                        const DropdownMenuItem(
+                          value: '',
+                          child: Text('Системные голоса'),
+                        ),
+                        ..._offlineVoices.map(
+                          (voice) => DropdownMenuItem(
+                            value: voice.voiceURI,
+                            child: Text('${voice.text} (Системный)'),
+                          ),
+                        ),
+                      ],
+                    ]
+                        .where(
+                          (item) =>
+                              item.value == null || item.value!.isNotEmpty,
+                        )
+                        .toList(),
                     onChanged: (value) async {
                       if (value != null && value.isNotEmpty) {
                         await _ttsService.setVoice(value);
@@ -483,7 +483,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ],
                   ),
                   const SizedBox(height: 16),
-
                   if (_userEmail != null) ...[
                     ListTile(
                       leading: const Icon(Icons.email),
@@ -492,7 +491,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ),
                     const Divider(),
                   ],
-
                   ListTile(
                     leading: const Icon(Icons.lock_reset),
                     title: const Text('Сбросить пароль'),
@@ -500,9 +498,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: _navigateToResetPassword,
                   ),
-
                   const Divider(),
-
                   ListTile(
                     leading: const Icon(Icons.logout, color: Colors.red),
                     title: const Text(
@@ -545,7 +541,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ],
                   ),
                   const SizedBox(height: 16),
-
                   Text(
                     'Доступно Яндекс голосов: ${_yandexVoices.length}',
                     style: Theme.of(context).textTheme.bodyMedium,
@@ -556,9 +551,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 16),
-
                   const Divider(),
-
                   ListTile(
                     leading: const Icon(Icons.help_outline),
                     title: const Text('Справка'),
@@ -573,7 +566,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                       );
                     },
                   ),
-
                   ListTile(
                     leading: const Icon(Icons.bug_report),
                     title: const Text('Сообщить об ошибке'),

@@ -133,15 +133,20 @@ class AuthService {
 
   Future<LoginResponse> refreshToken() async {
     try {
-      final currentToken = await TokenManager.getToken();
-      if (currentToken == null) {
-        throw Exception('No current token available');
+      final refreshToken = await TokenManager.getRefreshToken();
+      if (refreshToken == null) {
+        throw Exception('No refresh token available');
       }
 
-      final response = await _apiClient.post('/refresh-token');
+      developer.log('Обновляю токен с помощью refresh token');
+
+      // Создаем запрос с refresh token в теле
+      final request = {'refreshToken': refreshToken};
+      final response = await _apiClient.post('/refresh-token', body: request);
 
       final loginResponse = LoginResponse.fromJson(response);
 
+      developer.log('Токен успешно обновлен, сохраняю новые токены');
       await TokenManager.saveToken(loginResponse.token);
       if (loginResponse.refreshToken != null &&
           loginResponse.refreshToken!.isNotEmpty) {
@@ -150,6 +155,7 @@ class AuthService {
 
       return loginResponse;
     } catch (e) {
+      developer.log('Ошибка при обновлении токена: $e');
       rethrow;
     }
   }

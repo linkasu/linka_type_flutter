@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../utils/token_manager.dart';
 import '../exceptions.dart';
-import 'auth_service.dart';
+import '../models/auth_models.dart';
 import 'dart:developer' as developer;
 
 class ApiClient {
@@ -11,6 +11,8 @@ class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
   factory ApiClient() => _instance;
   ApiClient._internal();
+
+  bool _isRefreshing = false;
 
   Future<Map<String, String>> _getHeaders() async {
     try {
@@ -95,12 +97,16 @@ class ApiClient {
           : <String, dynamic>{};
 
       // Если получили 401, попробуем автоматически перелогиниться
-      if (response.statusCode == 401) {
+      if (response.statusCode == 401 && !_isRefreshing) {
         try {
+          _isRefreshing = true;
           await _attemptAutoRelogin();
           // Повторяем запрос с новым токеном
-          return await _retryRequest(response.request!);
+          final result = await _retryRequest(response.request!);
+          _isRefreshing = false;
+          return result;
         } catch (e) {
+          _isRefreshing = false;
           // Очищаем токен и выбрасываем ошибку
           await TokenManager.clearAll();
         }
@@ -116,10 +122,39 @@ class ApiClient {
 
   Future<void> _attemptAutoRelogin() async {
     try {
-      // Создаем новый экземпляр AuthService для refresh token
-      final authService = AuthService();
-      await authService.refreshToken();
+      final refreshToken = await TokenManager.getRefreshToken();
+      if (refreshToken == null) {
+        throw Exception('No refresh token available');
+      }
+
+      developer.log('Пытаюсь обновить токен автоматически');
+
+      // Создаем запрос напрямую без использования ApiClient
+      final request = {'refreshToken': refreshToken};
+      final uri = Uri.parse('$baseUrl/refresh-token');
+
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(request),
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+        final loginResponse = LoginResponse.fromJson(responseData);
+
+        await TokenManager.saveToken(loginResponse.token);
+        if (loginResponse.refreshToken != null &&
+            loginResponse.refreshToken!.isNotEmpty) {
+          await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
+        }
+
+        developer.log('Токен успешно обновлен автоматически');
+      } else {
+        throw Exception('Failed to refresh token: ${response.statusCode}');
+      }
     } catch (e) {
+      developer.log('Ошибка при автоматическом обновлении токена: $e');
       // Очищаем все данные при неудачном refresh
       await TokenManager.clearAll();
       rethrow;

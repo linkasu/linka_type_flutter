@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
+import '../screens/spotlight_screen.dart';
 
 class TextInputBlock extends StatefulWidget {
   final Function(String) onSayText;
@@ -40,6 +41,17 @@ class _TextInputBlockState extends State<TextInputBlock> {
       } else {
         widget.onSayText(text);
       }
+    }
+  }
+
+  void _showSpotlight() {
+    final text = _textController.text.trim();
+    if (text.isNotEmpty) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => SpotlightScreen(initialText: text),
+        ),
+      );
     }
   }
 
@@ -96,6 +108,17 @@ class _TextInputBlockState extends State<TextInputBlock> {
                   label: const Text('Скачать'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _hasText ? _showSpotlight : null,
+                  icon: const Icon(Icons.visibility),
+                  label: const Text('Показать'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),

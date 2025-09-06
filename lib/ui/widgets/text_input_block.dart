@@ -116,7 +116,7 @@ class _TextInputBlockState extends State<TextInputBlock> {
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
-                  onPressed: _hasText ? _showSpotlight : null,
+                  onPressed: _showSpotlight,
                   icon: const Icon(Icons.visibility),
                   label: const Text('Показать'),
                   style: ElevatedButton.styleFrom(

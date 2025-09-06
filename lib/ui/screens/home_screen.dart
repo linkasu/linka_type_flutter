@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../services/tts_service.dart';
+import '../../services/shortcut_controller.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
 import '../widgets/text_input_block.dart';
 import '../widgets/phrase_bank.dart';
 import '../widgets/crud_dialogs.dart';
+import '../widgets/shortcuts_dialog.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,6 +19,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TTSService _ttsService = TTSService.instance;
   final DataService _dataService = DataService();
+  final ShortcutController _shortcutController = ShortcutController();
+  final FocusNode _phraseBankFocus = FocusNode();
 
   List<Category> _categories = [];
   List<Statement> _statements = [];
@@ -27,6 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadData();
+    _setupShortcuts();
+  }
+
+  void _setupShortcuts() {
+    // Shortcuts are now handled globally in main.dart
   }
 
   Future<void> _loadData() async {
@@ -281,75 +290,101 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('LINKa напиши'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final confirmed = await CrudDialogs.showConfirmDialog(
-                context: context,
-                title: 'Выйти из аккаунта?',
-                content: 'Вы уверены, что хотите выйти?',
-                confirmText: 'Выйти',
-                cancelText: 'Отмена',
-              );
-
-              if (confirmed == true) {
-                await TokenManager.clearAll();
-                if (mounted) {
-                  Navigator.of(context).pushReplacementNamed('/login');
-                }
-              }
-            },
-            tooltip: 'Выйти',
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
-            tooltip: 'Настройки',
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  // Блок ввода текста
-                  TextInputBlock(
-                    onSayText: _sayText,
-                    onDownloadText: _downloadText,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Банк фраз
-                  Expanded(
-                    child: PhraseBank(
-                      categories: _categories,
-                      statements: _statements,
-                      onSayStatement: _sayStatement,
-                      onEditStatement: _editStatement,
-                      onDeleteStatement: _deleteStatement,
-                      onEditCategory: _editCategory,
-                      onDeleteCategory: _deleteCategory,
-                      onAddStatement: _addStatement,
-                      onAddCategory: _addCategory,
-                      selectedCategory: _selectedCategory,
-                      onCategorySelected: _onCategorySelected,
-                    ),
-                  ),
-                ],
-              ),
+    return KeyboardListener(
+      focusNode: FocusNode(),
+      onKeyEvent: (event) {
+        _shortcutController.handleKeyEvent(event);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('LINKa напиши'),
+          backgroundColor: AppTheme.primaryColor,
+          foregroundColor: Colors.white,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.keyboard),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const ShortcutsDialog(),
+                );
+              },
+              tooltip: 'Горячие клавиши',
             ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                final confirmed = await CrudDialogs.showConfirmDialog(
+                  context: context,
+                  title: 'Выйти из аккаунта?',
+                  content: 'Вы уверены, что хотите выйти?',
+                  confirmText: 'Выйти',
+                  cancelText: 'Отмена',
+                );
+
+                if (confirmed == true) {
+                  await TokenManager.clearAll();
+                  if (mounted) {
+                    Navigator.of(context).pushReplacementNamed('/login');
+                  }
+                }
+              },
+              tooltip: 'Выйти',
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) => const SettingsScreen()),
+                );
+              },
+              tooltip: 'Настройки',
+            ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    // Блок ввода текста
+                    TextInputBlock(
+                      onSayText: _sayText,
+                      onDownloadText: _downloadText,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Банк фраз
+                    Expanded(
+                      child: Focus(
+                        focusNode: _phraseBankFocus,
+                        child: PhraseBank(
+                          categories: _categories,
+                          statements: _statements,
+                          onSayStatement: _sayStatement,
+                          onEditStatement: _editStatement,
+                          onDeleteStatement: _deleteStatement,
+                          onEditCategory: _editCategory,
+                          onDeleteCategory: _deleteCategory,
+                          onAddStatement: _addStatement,
+                          onAddCategory: _addCategory,
+                          selectedCategory: _selectedCategory,
+                          onCategorySelected: _onCategorySelected,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    _phraseBankFocus.dispose();
+    super.dispose();
   }
 }

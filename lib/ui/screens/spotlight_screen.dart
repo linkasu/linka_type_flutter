@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../theme/spotlight_theme.dart';
 import '../widgets/spotlight_container.dart';
+import '../../services/shortcut_controller.dart';
 
 class SpotlightScreen extends StatefulWidget {
   final String initialText;
@@ -18,6 +19,7 @@ class SpotlightScreen extends StatefulWidget {
 class _SpotlightScreenState extends State<SpotlightScreen> {
   late TextEditingController _textController;
   bool _isEditing = false;
+  final ShortcutController _shortcutController = ShortcutController();
 
   @override
   void initState() {
@@ -26,11 +28,25 @@ class _SpotlightScreenState extends State<SpotlightScreen> {
     _textController.addListener(() {
       setState(() {});
     });
+    _shortcutController.setCloseSpotlightCallback(() {
+      Navigator.of(context).pop();
+    });
+
+    // Автоматически включаем редактирование на десктопах если поле пустое
+    final isDesktop = kIsWeb ||
+        (defaultTargetPlatform == TargetPlatform.windows) ||
+        (defaultTargetPlatform == TargetPlatform.macOS) ||
+        (defaultTargetPlatform == TargetPlatform.linux);
+
+    if (isDesktop && widget.initialText.isEmpty) {
+      _isEditing = true;
+    }
   }
 
   @override
   void dispose() {
     _textController.dispose();
+    _shortcutController.setCloseSpotlightCallback(() {});
     super.dispose();
   }
 

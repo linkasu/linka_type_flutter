@@ -10,6 +10,8 @@ class ApiConstants {
   static const String resetPassword = '/reset-password';
   static const String resetPasswordVerify = '/reset-password/verify';
   static const String resetPasswordConfirm = '/reset-password/confirm';
+  static const String refreshToken = '/refresh-token';
+  static const String profile = '/profile';
 
   static const String statements = '/statements';
   static const String categories = '/categories';

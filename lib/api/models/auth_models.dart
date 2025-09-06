@@ -90,12 +90,12 @@ class ResetPasswordVerifyRequest {
 class ResetPasswordConfirmRequest {
   final String email;
   final String code;
-  final String password;
+  final String newPassword;
 
   ResetPasswordConfirmRequest({
     required this.email,
     required this.code,
-    required this.password,
+    required this.newPassword,
   });
 
   factory ResetPasswordConfirmRequest.fromJson(Map<String, dynamic> json) =>
@@ -104,12 +104,81 @@ class ResetPasswordConfirmRequest {
 }
 
 @JsonSerializable()
-class RefreshTokenRequest {
-  final String refreshToken;
+class RegisterResponse {
+  final String message;
+  final String userId;
+  final String email;
 
-  RefreshTokenRequest({required this.refreshToken});
+  RegisterResponse({
+    required this.message,
+    required this.userId,
+    required this.email,
+  });
 
-  factory RefreshTokenRequest.fromJson(Map<String, dynamic> json) =>
-      _$RefreshTokenRequestFromJson(json);
-  Map<String, dynamic> toJson() => _$RefreshTokenRequestToJson(this);
+  factory RegisterResponse.fromJson(Map<String, dynamic> json) =>
+      _$RegisterResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$RegisterResponseToJson(this);
+}
+
+@JsonSerializable()
+class VerifyEmailResponse {
+  final String message;
+  final String userId;
+
+  VerifyEmailResponse({
+    required this.message,
+    required this.userId,
+  });
+
+  factory VerifyEmailResponse.fromJson(Map<String, dynamic> json) =>
+      _$VerifyEmailResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$VerifyEmailResponseToJson(this);
+}
+
+@JsonSerializable()
+class ResetPasswordResponse {
+  final String message;
+
+  ResetPasswordResponse({required this.message});
+
+  factory ResetPasswordResponse.fromJson(Map<String, dynamic> json) =>
+      _$ResetPasswordResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$ResetPasswordResponseToJson(this);
+}
+
+@JsonSerializable()
+class ResetPasswordVerifyResponse {
+  final String message;
+
+  ResetPasswordVerifyResponse({required this.message});
+
+  factory ResetPasswordVerifyResponse.fromJson(Map<String, dynamic> json) =>
+      _$ResetPasswordVerifyResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$ResetPasswordVerifyResponseToJson(this);
+}
+
+@JsonSerializable()
+class ResetPasswordConfirmResponse {
+  final String message;
+
+  ResetPasswordConfirmResponse({required this.message});
+
+  factory ResetPasswordConfirmResponse.fromJson(Map<String, dynamic> json) =>
+      _$ResetPasswordConfirmResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$ResetPasswordConfirmResponseToJson(this);
+}
+
+@JsonSerializable()
+class ProfileResponse {
+  final String userId;
+  final String email;
+
+  ProfileResponse({
+    required this.userId,
+    required this.email,
+  });
+
+  factory ProfileResponse.fromJson(Map<String, dynamic> json) =>
+      _$ProfileResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$ProfileResponseToJson(this);
 }

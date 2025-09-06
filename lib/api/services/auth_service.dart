@@ -43,46 +43,50 @@ class AuthService {
     }
   }
 
-  Future<void> register(String email, String password) async {
+  Future<RegisterResponse> register(String email, String password) async {
     try {
       final request = RegisterRequest(email: email, password: password);
-      await _apiClient.post('/register', body: request.toJson());
+      final response = await _apiClient.post('/register', body: request.toJson());
+      return RegisterResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> verifyEmail(String email, String code) async {
+  Future<VerifyEmailResponse> verifyEmail(String email, String code) async {
     try {
       final request = VerifyEmailRequest(email: email, code: code);
-      await _apiClient.post('/verify-email', body: request.toJson());
+      final response = await _apiClient.post('/verify-email', body: request.toJson());
+      return VerifyEmailResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> requestPasswordReset(String email) async {
+  Future<ResetPasswordResponse> requestPasswordReset(String email) async {
     try {
       final request = ResetPasswordRequest(email: email);
-      await _apiClient.post('/auth/reset-password', body: request.toJson());
+      final response = await _apiClient.post('/reset-password', body: request.toJson());
+      return ResetPasswordResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> verifyPasswordResetOTP(String email, String code) async {
+  Future<ResetPasswordVerifyResponse> verifyPasswordResetOTP(String email, String code) async {
     try {
       final request = ResetPasswordVerifyRequest(email: email, code: code);
-      await _apiClient.post(
-        '/auth/reset-password/verify',
+      final response = await _apiClient.post(
+        '/reset-password/verify',
         body: request.toJson(),
       );
+      return ResetPasswordVerifyResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> confirmPasswordReset(
+  Future<ResetPasswordConfirmResponse> confirmPasswordReset(
     String email,
     String code,
     String newPassword,
@@ -91,12 +95,13 @@ class AuthService {
       final request = ResetPasswordConfirmRequest(
         email: email,
         code: code,
-        password: newPassword,
+        newPassword: newPassword,
       );
-      await _apiClient.post(
-        '/auth/reset-password/confirm',
+      final response = await _apiClient.post(
+        '/reset-password/confirm',
         body: request.toJson(),
       );
+      return ResetPasswordConfirmResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }
@@ -124,16 +129,12 @@ class AuthService {
 
   Future<LoginResponse> refreshToken() async {
     try {
-      final refreshToken = await TokenManager.getRefreshToken();
-      if (refreshToken == null) {
-        throw Exception('No refresh token available');
+      final currentToken = await TokenManager.getToken();
+      if (currentToken == null) {
+        throw Exception('No current token available');
       }
 
-      final request = RefreshTokenRequest(refreshToken: refreshToken);
-      final response = await _apiClient.post(
-        '/refresh',
-        body: request.toJson(),
-      );
+      final response = await _apiClient.post('/refresh-token');
 
       final loginResponse = LoginResponse.fromJson(response);
 
@@ -144,6 +145,15 @@ class AuthService {
       }
 
       return loginResponse;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<ProfileResponse> getProfile() async {
+    try {
+      final response = await _apiClient.get('/profile');
+      return ProfileResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }

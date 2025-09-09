@@ -72,25 +72,49 @@ class TTSService {
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isWindows || Platform.isMacOS)) {
       _flutterTts = FlutterTts();
       
-      // Настраиваем FlutterTts
-      await _flutterTts?.setLanguage("ru-RU");
-      await _flutterTts?.setSpeechRate(await getRate());
-      await _flutterTts?.setVolume(await getVolume());
-      await _flutterTts?.setPitch(await getPitch());
-      
-      // Устанавливаем обработчики событий
-      _flutterTts?.setStartHandler(() {
-        _eventController.add('start');
-      });
-      
-      _flutterTts?.setCompletionHandler(() {
-        _eventController.add('end');
-      });
-      
-      _flutterTts?.setErrorHandler((msg) {
-        _lastError = msg;
-        _eventController.add('error: $msg');
-      });
+      try {
+        // Настраиваем FlutterTts
+        await _flutterTts?.setLanguage("ru-RU");
+        await _flutterTts?.setSpeechRate(await getRate());
+        await _flutterTts?.setVolume(await getVolume());
+        await _flutterTts?.setPitch(await getPitch());
+        
+        // Устанавливаем обработчики событий
+        _flutterTts?.setStartHandler(() {
+          _eventController.add('start');
+        });
+        
+        _flutterTts?.setCompletionHandler(() {
+          _eventController.add('end');
+        });
+        
+        _flutterTts?.setErrorHandler((msg) {
+          _lastError = msg;
+          _eventController.add('error: $msg');
+        });
+        
+        // Проверяем доступность голосов на macOS
+        if (Platform.isMacOS) {
+          final voices = await getOfflineVoices();
+          
+          // Устанавливаем русский голос по умолчанию для macOS
+          if (voices.isNotEmpty) {
+            final russianVoice = voices.firstWhere(
+              (voice) => voice.locale?.startsWith('ru') == true,
+              orElse: () => voices.first,
+            );
+            
+            if (russianVoice.locale?.startsWith('ru') == true) {
+              await _flutterTts?.setVoice({
+                "name": russianVoice.voiceURI,
+                "locale": russianVoice.locale ?? "ru-RU"
+              });
+            }
+          }
+        }
+              } catch (e) {
+          _lastError = 'Ошибка инициализации FlutterTts: $e';
+        }
     }
     
     _isInitialized = true;
@@ -108,17 +132,24 @@ class TTSService {
       // Используем Яндекс TTS если включен или на Linux
       await _yandexSay(text, download: false);
     } else {
-      // Используем нативный TTS
+      // Используем нативный TTS (по умолчанию для macOS)
       await _nativeSay(text);
     }
   }
   
   Future<void> _nativeSay(String text) async {
     try {
-      await _flutterTts?.speak(text);
+      if (_flutterTts == null) {
+        _lastError = 'FlutterTts не инициализирован';
+        _eventController.add('error: FlutterTts не инициализирован');
+        return;
+      }
+      
+      await _flutterTts!.speak(text);
     } catch (e) {
       _lastError = e.toString();
       _eventController.add('error: $e');
+      print('Ошибка нативного TTS: $e');
     }
   }
   
@@ -275,7 +306,12 @@ class TTSService {
   
   // Yandex mode
   Future<bool> getUseYandex() async {
-    return _prefs.getBool('yandex') ?? true; // По умолчанию true для Linux
+    // На macOS по умолчанию используем нативный TTS
+    if (Platform.isMacOS) {
+      return _prefs.getBool('yandex') ?? false;
+    }
+    // На Linux по умолчанию используем Яндекс TTS
+    return _prefs.getBool('yandex') ?? true;
   }
   
   Future<void> setUseYandex(bool value) async {
@@ -352,6 +388,14 @@ class TTSService {
             text: firstYandex.text,
           );
         } else if (offlineVoices.isNotEmpty) {
+          // На macOS приоритет русским голосам
+          if (Platform.isMacOS) {
+            final russianVoice = offlineVoices.firstWhere(
+              (voice) => voice.locale?.startsWith('ru') == true,
+              orElse: () => offlineVoices.first,
+            );
+            return russianVoice;
+          }
           return offlineVoices.first;
         } else {
           // Fallback
@@ -372,21 +416,52 @@ class TTSService {
       if (_flutterTts == null) return [];
       
       final voices = await _flutterTts!.getVoices;
+      
       if (voices == null) return [];
       
-      return voices.map((voice) {
-        final Map<String, dynamic> voiceMap = voice as Map<String, dynamic>;
-        return TTSVoice(
-          voiceURI: voiceMap['name'] ?? '',
-          text: voiceMap['name'] ?? '',
-          locale: voiceMap['locale'] ?? '',
-          isDefault: voiceMap['default'] ?? false,
-        );
-      }).toList();
-    } catch (e) {
-      print('Ошибка получения офлайн голосов: $e');
-      return [];
-    }
+      if (voices is List) {
+        final voiceList = voices.map((voice) {
+          if (voice is Map) {
+            final Map<Object?, Object?> voiceMap = voice as Map<Object?, Object?>;
+            return TTSVoice(
+              voiceURI: (voiceMap['name'] ?? '').toString(),
+              text: (voiceMap['name'] ?? '').toString(),
+              locale: (voiceMap['locale'] ?? '').toString(),
+              isDefault: voiceMap['default'] == true,
+            );
+          } else {
+            print('Неожиданный тип voice: ${voice.runtimeType}');
+            return TTSVoice(
+              voiceURI: 'unknown',
+              text: 'Неизвестный голос',
+              locale: 'ru-RU',
+              isDefault: false,
+            );
+          }
+        }).toList();
+        
+        // Сортируем голоса: сначала русские, затем английские, затем остальные
+        voiceList.sort((a, b) {
+          // Русский язык имеет высший приоритет
+          if (a.locale?.startsWith('ru') == true && b.locale?.startsWith('ru') != true) return -1;
+          if (b.locale?.startsWith('ru') == true && a.locale?.startsWith('ru') != true) return 1;
+          
+          // Английский язык имеет второй приоритет
+          if (a.locale?.startsWith('en') == true && b.locale?.startsWith('en') != true) return -1;
+          if (b.locale?.startsWith('en') == true && a.locale?.startsWith('en') != true) return 1;
+          
+          // По умолчанию сортируем по названию
+          return a.text.compareTo(b.text);
+        });
+        
+        return voiceList;
+      } else {
+        print('voices не является List: ${voices.runtimeType}');
+        return [];
+      }
+            } catch (e) {
+          return [];
+        }
   }
   
   List<YandexVoice> getYandexVoices() {
@@ -408,6 +483,15 @@ class TTSService {
       final voices = await getOfflineVoices();
       if (voices.isEmpty) return null;
       
+      // На macOS приоритет русским голосам
+      if (Platform.isMacOS) {
+        final russianVoice = voices.firstWhere(
+          (voice) => voice.locale?.startsWith('ru') == true,
+          orElse: () => voices.first,
+        );
+        return russianVoice;
+      }
+      
       // Ищем голос по умолчанию или берем первый
       final defaultVoice = voices.firstWhere(
         (voice) => voice.isDefault,
@@ -415,10 +499,19 @@ class TTSService {
       );
       
       return defaultVoice;
-    } catch (e) {
-      print('Ошибка получения голоса по умолчанию: $e');
-      return null;
-    }
+            } catch (e) {
+          return null;
+        }
+  }
+  
+  /// Получает список только русских голосов
+  Future<List<TTSVoice>> getRussianVoices() async {
+    try {
+      final allVoices = await getOfflineVoices();
+      return allVoices.where((voice) => voice.locale?.startsWith('ru') == true).toList();
+            } catch (e) {
+          return [];
+        }
   }
   
   void dispose() {

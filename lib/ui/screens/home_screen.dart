@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../services/tts_service.dart';
 import '../../api/api.dart';
-import '../../api/utils/token_manager.dart';
 import '../theme/app_theme.dart';
 import '../widgets/text_input_block.dart';
 import '../widgets/phrase_bank.dart';
+import '../widgets/crud_dialogs.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,15 +17,22 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TTSService _ttsService = TTSService.instance;
   final DataService _dataService = DataService();
-  
+  final FocusNode _phraseBankFocus = FocusNode();
+
   List<Category> _categories = [];
   List<Statement> _statements = [];
   bool _isLoading = true;
+  Category? _selectedCategory;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _setupShortcuts();
+  }
+
+  void _setupShortcuts() {
+    // Shortcuts are now handled globally in main.dart
   }
 
   Future<void> _loadData() async {
@@ -33,10 +40,10 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _isLoading = true;
       });
-      
+
       final categories = await _dataService.getCategories();
       final statements = await _dataService.getStatements();
-      
+
       setState(() {
         _categories = categories;
         _statements = statements;
@@ -46,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _isLoading = false;
       });
-      
+
       if (mounted) {
         // Проверяем, является ли ошибка 401 (неавторизован)
         if (e.toString().contains('401')) {
@@ -82,211 +89,153 @@ class _HomeScreenState extends State<HomeScreen> {
     await _ttsService.say(statement.title);
   }
 
+  void _onCategorySelected(Category? category) {
+    setState(() {
+      _selectedCategory = category;
+    });
+  }
+
   Future<void> _editStatement(Statement statement) async {
-    final TextEditingController titleController = TextEditingController(text: statement.title);
-    String? selectedCategoryId = statement.categoryId;
-    
-    final result = await showDialog<Map<String, String>>(
+    final dropdownItems = _categories
+        .map((category) => {'value': category.id, 'label': category.title})
+        .toList();
+
+    final result = await CrudDialogs.showTextWithDropdownDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Редактировать фразу'),
-        content: StatefulBuilder(
-          builder: (context, setState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Текст фразы',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedCategoryId,
-                decoration: const InputDecoration(
-                  labelText: 'Категория',
-                  border: OutlineInputBorder(),
-                ),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category.id,
-                    child: Text(category.title),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCategoryId = value;
-                  });
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Отмена'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (titleController.text.trim().isNotEmpty && selectedCategoryId != null) {
-                Navigator.of(context).pop({
-                  'title': titleController.text.trim(),
-                  'categoryId': selectedCategoryId!,
-                });
-              }
-            },
-            child: const Text('Сохранить'),
-          ),
-        ],
-      ),
+      title: 'Редактировать фразу',
+      textLabel: 'Текст фразы',
+      dropdownLabel: 'Категория',
+      dropdownItems: dropdownItems,
+      initialText: statement.title,
+      initialDropdownValue: statement.categoryId,
+      textMaxLines: 3,
     );
 
     if (result != null) {
       try {
-        await _dataService.updateStatement(statement.id, result['title']!, result['categoryId']!);
-        await _loadData(); // Перезагружаем данные
+        await _dataService.updateStatement(
+          statement.id,
+          result['text']!,
+          result['dropdown']!,
+        );
+        await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Фраза обновлена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Фраза обновлена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка обновления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка обновления: $e')));
         }
       }
     }
   }
 
   Future<void> _deleteStatement(Statement statement) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await CrudDialogs.showConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Удалить фразу?'),
-        content: Text('Вы уверены, что хотите удалить фразу "${statement.title}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Удалить'),
-          ),
-        ],
-      ),
+      title: 'Удалить фразу?',
+      content: 'Вы уверены, что хотите удалить фразу "${statement.title}"?',
     );
 
     if (confirmed == true) {
       try {
         await _dataService.deleteStatement(statement.id);
-        await _loadData(); // Перезагружаем данные
+        await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Фраза удалена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Фраза удалена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка удаления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка удаления: $e')));
         }
       }
     }
   }
 
   Future<void> _editCategory(Category category) async {
-    final TextEditingController titleController = TextEditingController(text: category.title);
-    
-    final result = await showDialog<String>(
+    final result = await CrudDialogs.showTextInputDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Редактировать категорию'),
-        content: TextField(
-          controller: titleController,
-          decoration: const InputDecoration(
-            labelText: 'Название категории',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Отмена'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (titleController.text.trim().isNotEmpty) {
-                Navigator.of(context).pop(titleController.text.trim());
-              }
-            },
-            child: const Text('Сохранить'),
-          ),
-        ],
-      ),
+      title: 'Редактировать категорию',
+      labelText: 'Название категории',
+      initialValue: category.title,
     );
 
     if (result != null) {
       try {
         await _dataService.updateCategory(category.id, result);
-        await _loadData(); // Перезагружаем данные
+        await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Категория обновлена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Категория обновлена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка обновления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка обновления: $e')));
         }
       }
     }
   }
 
   Future<void> _deleteCategory(Category category) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await CrudDialogs.showConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Удалить категорию?'),
-        content: Text('Вы уверены, что хотите удалить категорию "${category.title}"? Все фразы в этой категории также будут удалены.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Удалить'),
-          ),
-        ],
-      ),
+      title: 'Удалить категорию?',
+      content:
+          'Вы уверены, что хотите удалить категорию "${category.title}"? Все фразы в этой категории также будут удалены.',
     );
 
     if (confirmed == true) {
       try {
         await _dataService.deleteCategory(category.id);
-        await _loadData(); // Перезагружаем данные
+        await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Категория удалена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Категория удалена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка удаления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка удаления: $e')));
+        }
+      }
+    }
+  }
+
+  Future<void> _addCategory() async {
+    final result = await CrudDialogs.showTextInputDialog(
+      context: context,
+      title: 'Добавить категорию',
+      labelText: 'Название категории',
+      hintText: 'Введите название категории',
+    );
+
+    if (result != null) {
+      try {
+        await _dataService.createCategory(result);
+        await _loadData();
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Категория добавлена')));
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка добавления: $e')));
         }
       }
     }
@@ -295,87 +244,42 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _addStatement() async {
     if (_categories.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Сначала создайте категорию в настройках')),
+        const SnackBar(content: Text('Сначала создайте категорию')),
       );
       return;
     }
 
-    final TextEditingController titleController = TextEditingController();
-    String? selectedCategoryId = _categories.first.id;
-    
-    final result = await showDialog<Map<String, String>>(
+    final dropdownItems = _categories
+        .map((category) => {'value': category.id, 'label': category.title})
+        .toList();
+
+    final result = await CrudDialogs.showTextWithDropdownDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Добавить фразу'),
-        content: StatefulBuilder(
-          builder: (context, setState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Текст фразы',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-                autofocus: true,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedCategoryId,
-                decoration: const InputDecoration(
-                  labelText: 'Категория',
-                  border: OutlineInputBorder(),
-                ),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category.id,
-                    child: Text(category.title),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCategoryId = value;
-                  });
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Отмена'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (titleController.text.trim().isNotEmpty && selectedCategoryId != null) {
-                Navigator.of(context).pop({
-                  'title': titleController.text.trim(),
-                  'categoryId': selectedCategoryId!,
-                });
-              }
-            },
-            child: const Text('Добавить'),
-          ),
-        ],
-      ),
+      title: 'Добавить фразу',
+      textLabel: 'Текст фразы',
+      dropdownLabel: 'Категория',
+      dropdownItems: dropdownItems,
+      initialDropdownValue: _selectedCategory?.id ?? _categories.first.id,
+      textMaxLines: 3,
     );
 
     if (result != null) {
       try {
-        await _dataService.createStatement(result['title']!, result['categoryId']!);
-        await _loadData(); // Перезагружаем данные
+        await _dataService.createStatement(
+          result['text']!,
+          result['dropdown']!,
+        );
+        await _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Фраза добавлена')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Фраза добавлена')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка добавления: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Ошибка добавления: $e')));
         }
       }
     }
@@ -390,75 +294,63 @@ class _HomeScreenState extends State<HomeScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final confirmed = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Выйти из аккаунта?'),
-                  content: const Text('Вы уверены, что хотите выйти?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Отмена'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: const Text('Выйти'),
-                    ),
-                  ],
-                ),
-              );
-              
-              if (confirmed == true) {
-                await TokenManager.clearAll();
-                if (mounted) {
-                  Navigator.of(context).pushReplacementNamed('/login');
-                }
-              }
-            },
-            tooltip: 'Выйти',
-          ),
-          IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             },
+            tooltip: 'Настройки',
           ),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  // Блок ввода текста
-                  TextInputBlock(
-                    onSayText: _sayText,
-                    onDownloadText: _downloadText,
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Банк фраз
-                  Expanded(
-                    child: PhraseBank(
-                      categories: _categories,
-                      statements: _statements,
-                      onSayStatement: _sayStatement,
-                      onEditStatement: _editStatement,
-                      onDeleteStatement: _deleteStatement,
-                      onEditCategory: _editCategory,
-                      onDeleteCategory: _deleteCategory,
-                      onAddStatement: _addStatement,
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                return Column(
+                  children: [
+                    // Блок ввода текста
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextInputBlock(
+                        onSayText: _sayText,
+                        onDownloadText: _downloadText,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+
+                    // Банк фраз
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+                        child: Focus(
+                          focusNode: _phraseBankFocus,
+                          child: PhraseBank(
+                            categories: _categories,
+                            statements: _statements,
+                            onSayStatement: _sayStatement,
+                            onEditStatement: _editStatement,
+                            onDeleteStatement: _deleteStatement,
+                            onEditCategory: _editCategory,
+                            onDeleteCategory: _deleteCategory,
+                            onAddStatement: _addStatement,
+                            onAddCategory: _addCategory,
+                            selectedCategory: _selectedCategory,
+                            onCategorySelected: _onCategorySelected,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
     );
+  }
+
+  @override
+  void dispose() {
+    _phraseBankFocus.dispose();
+    super.dispose();
   }
 }

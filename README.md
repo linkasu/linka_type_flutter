@@ -1,16 +1,82 @@
-# linka_type_flutter
+# LINKa Type Flutter
 
-A new Flutter project.
+Приложение для набора текста с поддержкой синтеза речи.
 
-## Getting Started
+## Возможности
 
-This project is a starting point for a Flutter application.
+- Кроссплатформенное приложение (Linux, Windows, macOS, Android, iOS, Web)
+- Синтез речи с поддержкой голосов Яндекса
+- Современный интерфейс на Flutter
 
-A few resources to get you started if this is your first Flutter project:
+## Быстрый старт
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Установка зависимостей
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter pub get
+```
+
+### Запуск приложения
+
+```bash
+flutter run
+```
+
+### Запуск тестов
+
+```bash
+flutter test
+```
+
+### Локальная проверка CI
+
+```bash
+./scripts/test_ci.sh
+```
+
+## CI/CD
+
+Проект настроен с автоматическим CI/CD pipeline:
+
+- **Тесты**: Запускаются при каждом push и pull request
+- **Сборка**: Автоматическая сборка под все платформы
+
+## Разработка
+
+### Структура проекта
+
+- `lib/` - исходный код приложения
+- `test/` - тесты
+- `.github/workflows/` - CI/CD конфигурация
+- `scripts/` - вспомогательные скрипты
+
+### Требования
+
+- Flutter 3.35.3+
+- Dart 3.5.0+
+
+#### Дополнительные зависимости для Linux
+
+Для сборки приложения с аудио плагинами на Linux:
+
+```bash
+sudo apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+sudo apt-get install gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+```
+
+### Полезные команды
+
+```bash
+# Анализ кода
+flutter analyze
+
+# Форматирование
+flutter format .
+
+# Сборка для конкретной платформы
+flutter build linux --release
+flutter build windows --release
+flutter build macos --release
+flutter build apk --release
+flutter build web --release
+```

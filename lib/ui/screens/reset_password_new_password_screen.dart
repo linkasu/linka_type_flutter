@@ -6,7 +6,7 @@ import 'login_screen.dart';
 class ResetPasswordNewPasswordScreen extends StatefulWidget {
   final String email;
   final String otp;
-  
+
   const ResetPasswordNewPasswordScreen({
     super.key,
     required this.email,
@@ -14,15 +14,17 @@ class ResetPasswordNewPasswordScreen extends StatefulWidget {
   });
 
   @override
-  State<ResetPasswordNewPasswordScreen> createState() => _ResetPasswordNewPasswordScreenState();
+  State<ResetPasswordNewPasswordScreen> createState() =>
+      _ResetPasswordNewPasswordScreenState();
 }
 
-class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswordScreen> {
+class _ResetPasswordNewPasswordScreenState
+    extends State<ResetPasswordNewPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
-  
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -51,21 +53,23 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
         widget.otp,
         _passwordController.text,
       );
-      
+
       if (mounted) {
         setState(() {
           _successMessage = 'Пароль успешно изменен';
         });
-        
+
         // Показать сообщение об успехе и перейти на экран входа
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Пароль успешно изменен. Теперь вы можете войти в систему'),
+            content: Text(
+              'Пароль успешно изменен. Теперь вы можете войти в систему',
+            ),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 3),
           ),
         );
-        
+
         // Переход на экран входа
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -141,13 +145,10 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
                       const Text(
                         'Придумайте надежный пароль для вашего аккаунта',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Новый пароль
                       TextFormField(
                         controller: _passwordController,
@@ -158,7 +159,9 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                              _obscurePassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                             ),
                             onPressed: () {
                               setState(() {
@@ -174,14 +177,16 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
                           if (value.length < 8) {
                             return 'Пароль должен содержать минимум 8 символов';
                           }
-                          if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
+                          if (!RegExp(
+                            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)',
+                          ).hasMatch(value)) {
                             return 'Пароль должен содержать буквы в разных регистрах и цифры';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Подтверждение пароля
                       TextFormField(
                         controller: _confirmPasswordController,
@@ -193,11 +198,14 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                              _obscureConfirmPassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                             ),
                             onPressed: () {
                               setState(() {
-                                _obscureConfirmPassword = !_obscureConfirmPassword;
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword;
                               });
                             },
                           ),
@@ -213,7 +221,7 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
                         },
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Сообщение об ошибке
                       if (_errorMessage != null) ...[
                         Container(
@@ -232,7 +240,7 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
                         ),
                         const SizedBox(height: 16),
                       ],
-                      
+
                       // Сообщение об успехе
                       if (_successMessage != null) ...[
                         Container(
@@ -251,7 +259,7 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
                         ),
                         const SizedBox(height: 16),
                       ],
-                      
+
                       // Кнопка сброса пароля
                       SizedBox(
                         width: double.infinity,
@@ -263,14 +271,16 @@ class _ResetPasswordNewPasswordScreenState extends State<ResetPasswordNewPasswor
                                   width: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : const Text('Изменить пароль'),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Кнопка возврата
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),

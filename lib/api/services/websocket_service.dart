@@ -4,10 +4,10 @@ import '../utils/token_manager.dart';
 
 class WebSocketService {
   static const String wsUrl = 'wss://type-backend.linka.su/api/ws';
-  
+
   WebSocketChannel? _channel;
   bool _isConnected = false;
-  
+
   Function(Map<String, dynamic>)? _onMessage;
   Function()? _onConnected;
   Function()? _onDisconnected;
@@ -40,7 +40,7 @@ class WebSocketService {
 
       final wsUri = Uri.parse('$wsUrl?token=$token');
       _channel = WebSocketChannel.connect(wsUri);
-      
+
       _channel!.stream.listen(
         (data) {
           _handleMessage(data);
@@ -77,10 +77,7 @@ class WebSocketService {
       throw Exception('WebSocket is not connected');
     }
 
-    final message = {
-      'type': type,
-      'payload': payload,
-    };
+    final message = {'type': type, 'payload': payload};
 
     _channel!.sink.add(jsonEncode(message));
   }

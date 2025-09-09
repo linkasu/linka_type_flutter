@@ -7,7 +7,6 @@ class TokenManager {
   static const String _userIdKey = 'user_id';
   static const String _emailKey = 'user_email';
 
-
   static Future<void> saveToken(String token) async {
     try {
       developer.log('Пытаюсь сохранить токен в SharedPreferences');
@@ -50,7 +49,9 @@ class TokenManager {
       developer.log('Получаю refresh token из SharedPreferences');
       final prefs = await SharedPreferences.getInstance();
       final refreshToken = prefs.getString(_refreshTokenKey);
-      developer.log('Refresh token получен: ${refreshToken != null ? 'да' : 'нет'}');
+      developer.log(
+        'Refresh token получен: ${refreshToken != null ? 'да' : 'нет'}',
+      );
       return refreshToken;
     } catch (e) {
       developer.log('Ошибка при получении refresh token: $e');
@@ -60,7 +61,9 @@ class TokenManager {
 
   static Future<void> saveUserInfo(String userId, String email) async {
     try {
-      developer.log('Сохраняю информацию о пользователе: userId=$userId, email=$email');
+      developer.log(
+        'Сохраняю информацию о пользователе: userId=$userId, email=$email',
+      );
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_userIdKey, userId);
       await prefs.setString(_emailKey, email);
@@ -110,7 +113,9 @@ class TokenManager {
     try {
       final token = await getToken();
       final isLoggedIn = token != null && token.isNotEmpty;
-      developer.log('Проверка авторизации: ${isLoggedIn ? 'авторизован' : 'не авторизован'}');
+      developer.log(
+        'Проверка авторизации: ${isLoggedIn ? 'авторизован' : 'не авторизован'}',
+      );
       return isLoggedIn;
     } catch (e) {
       developer.log('Ошибка при проверке авторизации: $e');

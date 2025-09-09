@@ -5,11 +5,8 @@ import 'reset_password_new_password_screen.dart';
 
 class ResetPasswordOTPScreen extends StatefulWidget {
   final String email;
-  
-  const ResetPasswordOTPScreen({
-    super.key,
-    required this.email,
-  });
+
+  const ResetPasswordOTPScreen({super.key, required this.email});
 
   @override
   State<ResetPasswordOTPScreen> createState() => _ResetPasswordOTPScreenState();
@@ -19,7 +16,7 @@ class _ResetPasswordOTPScreenState extends State<ResetPasswordOTPScreen> {
   final _formKey = GlobalKey<FormState>();
   final _otpController = TextEditingController();
   final _authService = AuthService();
-  
+
   bool _isLoading = false;
   String? _errorMessage;
   String? _successMessage;
@@ -40,13 +37,16 @@ class _ResetPasswordOTPScreenState extends State<ResetPasswordOTPScreen> {
     });
 
     try {
-      await _authService.verifyPasswordResetOTP(widget.email, _otpController.text.trim());
-      
+      await _authService.verifyPasswordResetOTP(
+        widget.email,
+        _otpController.text.trim(),
+      );
+
       if (mounted) {
         setState(() {
           _successMessage = 'Код подтвержден';
         });
-        
+
         // Переход на экран установки нового пароля
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -82,7 +82,7 @@ class _ResetPasswordOTPScreenState extends State<ResetPasswordOTPScreen> {
 
     try {
       await _authService.requestPasswordReset(widget.email);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -166,7 +166,7 @@ class _ResetPasswordOTPScreenState extends State<ResetPasswordOTPScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // OTP поле
                       TextFormField(
                         controller: _otpController,
@@ -193,7 +193,7 @@ class _ResetPasswordOTPScreenState extends State<ResetPasswordOTPScreen> {
                         },
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Сообщение об ошибке
                       if (_errorMessage != null) ...[
                         Container(
@@ -212,7 +212,7 @@ class _ResetPasswordOTPScreenState extends State<ResetPasswordOTPScreen> {
                         ),
                         const SizedBox(height: 16),
                       ],
-                      
+
                       // Сообщение об успехе
                       if (_successMessage != null) ...[
                         Container(
@@ -231,7 +231,7 @@ class _ResetPasswordOTPScreenState extends State<ResetPasswordOTPScreen> {
                         ),
                         const SizedBox(height: 16),
                       ],
-                      
+
                       // Кнопка подтверждения
                       SizedBox(
                         width: double.infinity,
@@ -243,22 +243,24 @@ class _ResetPasswordOTPScreenState extends State<ResetPasswordOTPScreen> {
                                   width: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : const Text('Подтвердить'),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Кнопка повторной отправки
                       TextButton(
                         onPressed: _isLoading ? null : _resendOTP,
                         child: const Text('Отправить код повторно'),
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Кнопка возврата
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),

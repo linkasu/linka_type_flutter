@@ -9,27 +9,31 @@ class AuthService {
   Future<LoginResponse> login(String email, String password) async {
     try {
       developer.log('Начинаю процесс авторизации для email: $email');
-      
+
       final request = LoginRequest(email: email, password: password);
       developer.log('Отправляю запрос на /login');
-      
+
       final response = await _apiClient.post('/login', body: request.toJson());
       developer.log('Получен ответ от сервера: ${response.toString()}');
-      
+
       final loginResponse = LoginResponse.fromJson(response);
       developer.log('Ответ успешно десериализован');
-      
+
       developer.log('Сохраняю токен в TokenManager');
       await TokenManager.saveToken(loginResponse.token);
-      
-      if (loginResponse.refreshToken != null && loginResponse.refreshToken!.isNotEmpty) {
+
+      if (loginResponse.refreshToken != null &&
+          loginResponse.refreshToken!.isNotEmpty) {
         developer.log('Сохраняю refresh token');
         await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
       }
-      
+
       developer.log('Сохраняю информацию о пользователе');
-      await TokenManager.saveUserInfo(loginResponse.user.id, loginResponse.user.email);
-      
+      await TokenManager.saveUserInfo(
+        loginResponse.user.id,
+        loginResponse.user.email,
+      );
+
       developer.log('Авторизация завершена успешно');
       return loginResponse;
     } catch (e, stackTrace) {
@@ -39,50 +43,99 @@ class AuthService {
     }
   }
 
-  Future<void> register(String email, String password) async {
+  Future<RegisterResponse> register(String email, String password) async {
     try {
+      developer.log('Начинаю процесс регистрации для email: $email');
+
       final request = RegisterRequest(email: email, password: password);
-      await _apiClient.post('/register', body: request.toJson());
-    } catch (e) {
+      developer.log('Отправляю запрос на /register');
+
+      final response =
+          await _apiClient.post('/register', body: request.toJson());
+      developer.log('Получен ответ от сервера: ${response.toString()}');
+
+      final registerResponse = RegisterResponse.fromJson(response);
+      developer.log('Ответ успешно десериализован');
+
+      // Сохраняем токен если он есть
+      if (registerResponse.token.isNotEmpty) {
+        developer.log('Сохраняю токен в TokenManager');
+        await TokenManager.saveToken(registerResponse.token);
+      }
+
+      if (registerResponse.refreshToken != null &&
+          registerResponse.refreshToken!.isNotEmpty) {
+        developer.log('Сохраняю refresh token');
+        await TokenManager.saveRefreshToken(registerResponse.refreshToken!);
+      }
+
+      developer.log('Сохраняю информацию о пользователе');
+      await TokenManager.saveUserInfo(
+        registerResponse.user.id,
+        registerResponse.user.email,
+      );
+
+      developer.log('Регистрация завершена успешно');
+      return registerResponse;
+    } catch (e, stackTrace) {
+      developer.log('Ошибка при регистрации: $e');
+      developer.log('Stack trace: $stackTrace');
       rethrow;
     }
   }
 
-  Future<void> verifyEmail(String email, String code) async {
+  Future<VerifyEmailResponse> verifyEmail(String email, String code) async {
     try {
       final request = VerifyEmailRequest(email: email, code: code);
-      await _apiClient.post('/verify-email', body: request.toJson());
+      final response =
+          await _apiClient.post('/verify-email', body: request.toJson());
+      return VerifyEmailResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> requestPasswordReset(String email) async {
+  Future<ResetPasswordResponse> requestPasswordReset(String email) async {
     try {
       final request = ResetPasswordRequest(email: email);
-      await _apiClient.post('/auth/reset-password', body: request.toJson());
+      final response =
+          await _apiClient.post('/reset-password', body: request.toJson());
+      return ResetPasswordResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> verifyPasswordResetOTP(String email, String code) async {
+  Future<ResetPasswordVerifyResponse> verifyPasswordResetOTP(
+      String email, String code) async {
     try {
       final request = ResetPasswordVerifyRequest(email: email, code: code);
-      await _apiClient.post('/auth/reset-password/verify', body: request.toJson());
+      final response = await _apiClient.post(
+        '/reset-password/verify',
+        body: request.toJson(),
+      );
+      return ResetPasswordVerifyResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> confirmPasswordReset(String email, String code, String newPassword) async {
+  Future<ResetPasswordConfirmResponse> confirmPasswordReset(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
     try {
       final request = ResetPasswordConfirmRequest(
         email: email,
         code: code,
-        password: newPassword,
+        newPassword: newPassword,
       );
-      await _apiClient.post('/auth/reset-password/confirm', body: request.toJson());
+      final response = await _apiClient.post(
+        '/reset-password/confirm',
+        body: request.toJson(),
+      );
+      return ResetPasswordConfirmResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }
@@ -115,17 +168,32 @@ class AuthService {
         throw Exception('No refresh token available');
       }
 
-      final request = RefreshTokenRequest(refreshToken: refreshToken);
-      final response = await _apiClient.post('/refresh', body: request.toJson());
-      
+      developer.log('Обновляю токен с помощью refresh token');
+
+      // Создаем запрос с refresh token в теле
+      final request = {'refreshToken': refreshToken};
+      final response = await _apiClient.post('/refresh-token', body: request);
+
       final loginResponse = LoginResponse.fromJson(response);
-      
+
+      developer.log('Токен успешно обновлен, сохраняю новые токены');
       await TokenManager.saveToken(loginResponse.token);
-      if (loginResponse.refreshToken != null && loginResponse.refreshToken!.isNotEmpty) {
+      if (loginResponse.refreshToken != null &&
+          loginResponse.refreshToken!.isNotEmpty) {
         await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
       }
-      
+
       return loginResponse;
+    } catch (e) {
+      developer.log('Ошибка при обновлении токена: $e');
+      rethrow;
+    }
+  }
+
+  Future<ProfileResponse> getProfile() async {
+    try {
+      final response = await _apiClient.get('/profile');
+      return ProfileResponse.fromJson(response);
     } catch (e) {
       rethrow;
     }

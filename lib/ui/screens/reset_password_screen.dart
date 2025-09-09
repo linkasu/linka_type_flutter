@@ -14,7 +14,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _authService = AuthService();
-  
+
   bool _isLoading = false;
   String? _errorMessage;
   String? _successMessage;
@@ -36,18 +36,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     try {
       await _authService.requestPasswordReset(_emailController.text.trim());
-      
+
       if (mounted) {
         setState(() {
           _successMessage = 'Код подтверждения отправлен на ваш email';
         });
-        
+
         // Переход на экран ввода OTP
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => ResetPasswordOTPScreen(
-              email: _emailController.text.trim(),
-            ),
+            builder: (context) =>
+                ResetPasswordOTPScreen(email: _emailController.text.trim()),
           ),
         );
       }
@@ -120,13 +119,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       const Text(
                         'Введите ваш email для получения кода подтверждения',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Email поле
                       TextFormField(
                         controller: _emailController,
@@ -141,14 +137,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Введите email';
                           }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          if (!RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          ).hasMatch(value)) {
                             return 'Введите корректный email';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Сообщение об ошибке
                       if (_errorMessage != null) ...[
                         Container(
@@ -167,7 +165,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         ),
                         const SizedBox(height: 16),
                       ],
-                      
+
                       // Сообщение об успехе
                       if (_successMessage != null) ...[
                         Container(
@@ -186,7 +184,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         ),
                         const SizedBox(height: 16),
                       ],
-                      
+
                       // Кнопка отправки
                       SizedBox(
                         width: double.infinity,
@@ -198,14 +196,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                   width: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : const Text('Отправить код'),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Кнопка возврата
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),

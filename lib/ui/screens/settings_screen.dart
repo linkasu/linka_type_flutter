@@ -4,6 +4,7 @@ import 'dart:io';
 import '../../services/tts_service.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shortcuts_dialog.dart';
 import 'login_screen.dart';
 import 'reset_password_screen.dart';
 
@@ -14,11 +15,12 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProviderStateMixin {
+class _SettingsScreenState extends State<SettingsScreen>
+    with SingleTickerProviderStateMixin {
   final TTSService _ttsService = TTSService.instance;
   final AuthService _authService = AuthService();
   late TabController _tabController;
-  
+
   bool _useYandex = false;
   double _volume = 1.0;
   double _rate = 1.0;
@@ -30,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
   String? _lastError;
   String _ttsStatus = 'Готов';
   String? _userEmail;
-  
+
   @override
   void initState() {
     super.initState();
@@ -45,7 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
     _tabController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _loadUserInfo() async {
     try {
       final email = await TokenManager.getUserEmail();
@@ -56,27 +58,27 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
       print('Ошибка загрузки информации пользователя: $e');
     }
   }
-  
+
   Future<void> _loadSettings() async {
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       _useYandex = await _ttsService.getUseYandex();
       _volume = await _ttsService.getVolume();
       _rate = await _ttsService.getRate();
       _pitch = await _ttsService.getPitch();
-      
+
       _offlineVoices = await _ttsService.getOfflineVoices();
       _yandexVoices = _ttsService.getYandexVoices();
-      
+
       final selectedVoice = await _ttsService.getSelectedVoice();
       _selectedVoice = selectedVoice.voiceURI;
     } catch (e) {
       print('Ошибка загрузки настроек: $e');
     }
-    
+
     setState(() {
       _isLoading = false;
     });
@@ -115,7 +117,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
       MaterialPageRoute(builder: (context) => const ResetPasswordScreen()),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,11 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
           ? const Center(child: CircularProgressIndicator())
           : TabBarView(
               controller: _tabController,
-              children: [
-                _buildTTSTab(),
-                _buildAccountTab(),
-                _buildInfoTab(),
-              ],
+              children: [_buildTTSTab(), _buildAccountTab(), _buildInfoTab()],
             ),
     );
   }
@@ -171,9 +169,12 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                             ),
                             Text(
                               'Статус: $_ttsStatus',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppTheme.textSecondaryColor,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
                             ),
                           ],
                         ),
@@ -185,7 +186,9 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                             Clipboard.setData(ClipboardData(text: _lastError!));
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Ошибка скопирована в буфер обмена'),
+                                content: Text(
+                                  'Ошибка скопирована в буфер обмена',
+                                ),
                                 duration: Duration(seconds: 2),
                               ),
                             );
@@ -195,7 +198,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Отображение ошибки
                   if (_lastError != null) ...[
                     Container(
@@ -218,7 +221,9 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                           IconButton(
                             icon: const Icon(Icons.copy, size: 16),
                             onPressed: () {
-                              Clipboard.setData(ClipboardData(text: _lastError!));
+                              Clipboard.setData(
+                                ClipboardData(text: _lastError!),
+                              );
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Ошибка скопирована'),
@@ -233,7 +238,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     ),
                     const SizedBox(height: 16),
                   ],
-                  
+
                   // Переключатель режима TTS (скрыт на Linux)
                   if (!Platform.isLinux)
                     SwitchListTile(
@@ -267,17 +272,23 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                         ],
                       ),
                     ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Выбор голоса
-                  Text(
-                    'Голос',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  Text('Голос', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    initialValue: _selectedVoice.isNotEmpty && ((_useYandex || Platform.isLinux) ? _yandexVoices.any((v) => v.voiceURI == _selectedVoice) : _offlineVoices.any((v) => v.voiceURI == _selectedVoice)) ? _selectedVoice : null,
+                    initialValue: _selectedVoice.isNotEmpty &&
+                            ((_useYandex || Platform.isLinux)
+                                ? _yandexVoices.any(
+                                    (v) => v.voiceURI == _selectedVoice,
+                                  )
+                                : _offlineVoices.any(
+                                    (v) => v.voiceURI == _selectedVoice,
+                                  ))
+                        ? _selectedVoice
+                        : null,
                     decoration: const InputDecoration(
                       labelText: 'Выберите голос',
                       border: OutlineInputBorder(),
@@ -288,21 +299,30 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                           value: '',
                           child: Text('Яндекс голоса'),
                         ),
-                        ..._yandexVoices.map((voice) => DropdownMenuItem(
-                          value: voice.voiceURI,
-                          child: Text('${voice.text} (Яндекс)'),
-                        )),
+                        ..._yandexVoices.map(
+                          (voice) => DropdownMenuItem(
+                            value: voice.voiceURI,
+                            child: Text('${voice.text} (Яндекс)'),
+                          ),
+                        ),
                       ] else ...[
                         const DropdownMenuItem(
                           value: '',
                           child: Text('Системные голоса'),
                         ),
-                        ..._offlineVoices.map((voice) => DropdownMenuItem(
-                          value: voice.voiceURI,
-                          child: Text('${voice.text} (Системный)'),
-                        )),
+                        ..._offlineVoices.map(
+                          (voice) => DropdownMenuItem(
+                            value: voice.voiceURI,
+                            child: Text('${voice.text} (Системный)'),
+                          ),
+                        ),
                       ],
-                    ].where((item) => item.value == null || item.value!.isNotEmpty).toList(),
+                    ]
+                        .where(
+                          (item) =>
+                              item.value == null || item.value!.isNotEmpty,
+                        )
+                        .toList(),
                     onChanged: (value) async {
                       if (value != null && value.isNotEmpty) {
                         await _ttsService.setVoice(value);
@@ -312,9 +332,9 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                       }
                     },
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Громкость
                   Text(
                     'Громкость: ${(_volume * 100).round()}%',
@@ -332,7 +352,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                       });
                     },
                   ),
-                  
+
                   // Скорость
                   Text(
                     'Скорость: ${(_rate * 100).round()}%',
@@ -350,7 +370,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                       });
                     },
                   ),
-                  
+
                   // Тон
                   Text(
                     'Тон: ${(_pitch * 100).round()}%',
@@ -372,9 +392,9 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Управление TTS
           Card(
             child: Padding(
@@ -391,7 +411,8 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () => _ttsService.say('Привет! Это тест настроек TTS.'),
+                          onPressed: () =>
+                              _ttsService.say('Привет! Это тест настроек TTS.'),
                           icon: const Icon(Icons.play_arrow),
                           label: const Text('Тест'),
                           style: ElevatedButton.styleFrom(
@@ -451,7 +472,10 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.account_circle, color: AppTheme.primaryColor),
+                      const Icon(
+                        Icons.account_circle,
+                        color: AppTheme.primaryColor,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Информация об аккаунте',
@@ -460,7 +484,6 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
                   if (_userEmail != null) ...[
                     ListTile(
                       leading: const Icon(Icons.email),
@@ -469,7 +492,6 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     ),
                     const Divider(),
                   ],
-                  
                   ListTile(
                     leading: const Icon(Icons.lock_reset),
                     title: const Text('Сбросить пароль'),
@@ -477,12 +499,13 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: _navigateToResetPassword,
                   ),
-                  
                   const Divider(),
-                  
                   ListTile(
                     leading: const Icon(Icons.logout, color: Colors.red),
-                    title: const Text('Выйти из аккаунта', style: TextStyle(color: Colors.red)),
+                    title: const Text(
+                      'Выйти из аккаунта',
+                      style: TextStyle(color: Colors.red),
+                    ),
                     subtitle: const Text('Завершить текущую сессию'),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: _logout,
@@ -519,7 +542,6 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
                   Text(
                     'Доступно Яндекс голосов: ${_yandexVoices.length}',
                     style: Theme.of(context).textTheme.bodyMedium,
@@ -530,9 +552,19 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 16),
-                  
                   const Divider(),
-                  
+                  ListTile(
+                    leading: const Icon(Icons.keyboard),
+                    title: const Text('Горячие клавиши'),
+                    subtitle: const Text('Показать список доступных шорткатов'),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => const ShortcutsDialog(),
+                      );
+                    },
+                  ),
                   ListTile(
                     leading: const Icon(Icons.help_outline),
                     title: const Text('Справка'),
@@ -541,11 +573,12 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     onTap: () {
                       // TODO: Добавить экран справки
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Справка будет добавлена позже')),
+                        const SnackBar(
+                          content: Text('Справка будет добавлена позже'),
+                        ),
                       );
                     },
                   ),
-                  
                   ListTile(
                     leading: const Icon(Icons.bug_report),
                     title: const Text('Сообщить об ошибке'),
@@ -554,7 +587,11 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     onTap: () {
                       // TODO: Добавить форму отправки ошибки
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Форма отправки ошибки будет добавлена позже')),
+                        const SnackBar(
+                          content: Text(
+                            'Форма отправки ошибки будет добавлена позже',
+                          ),
+                        ),
                       );
                     },
                   ),

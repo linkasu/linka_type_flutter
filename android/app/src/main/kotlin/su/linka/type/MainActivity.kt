@@ -1,4 +1,4 @@
-package com.example.linka_type_flutter
+package su.linka.type
 
 import io.flutter.embedding.android.FlutterActivity
 

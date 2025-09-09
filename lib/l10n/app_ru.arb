@@ -1,0 +1,167 @@
+{
+  "@@locale": "ru",
+  "appTitle": "LINKa напиши",
+  "@appTitle": {
+    "description": "Название приложения"
+  },
+  
+  "login": "Войти",
+  "@login": {
+    "description": "Кнопка входа"
+  },
+  "register": "Регистрация",
+  "@register": {
+    "description": "Кнопка регистрации"
+  },
+  "forgotPassword": "Забыли пароль?",
+  "@forgotPassword": {
+    "description": "Ссылка на восстановление пароля"
+  },
+  
+  "email": "Email",
+  "@email": {
+    "description": "Поле email"
+  },
+  "password": "Пароль",
+  "@password": {
+    "description": "Поле пароля"
+  },
+  
+  "enterEmail": "Введите email",
+  "@enterEmail": {
+    "description": "Валидация email"
+  },
+  "enterPassword": "Введите пароль",
+  "@enterPassword": {
+    "description": "Валидация пароля"
+  },
+  "passwordMinLength": "Пароль должен содержать минимум 6 символов",
+  "@passwordMinLength": {
+    "description": "Валидация длины пароля"
+  },
+  
+  "welcomeMessage": "Добро пожаловать, {email}!",
+  "@welcomeMessage": {
+    "description": "Приветственное сообщение",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "description": "Email пользователя"
+      }
+    }
+  },
+  
+  "errorInvalidCredentials": "Неверный email или пароль",
+  "@errorInvalidCredentials": {
+    "description": "Ошибка неверных учетных данных"
+  },
+  "errorInvalidFormat": "Неверный формат данных",
+  "@errorInvalidFormat": {
+    "description": "Ошибка неверного формата"
+  },
+  "errorServer": "Ошибка сервера",
+  "@errorServer": {
+    "description": "Ошибка сервера"
+  },
+  "errorNetwork": "Ошибка сети",
+  "@errorNetwork": {
+    "description": "Ошибка сети"
+  },
+  "errorUnauthorized": "Не авторизован",
+  "@errorUnauthorized": {
+    "description": "Ошибка авторизации"
+  },
+  "errorUnknown": "Неизвестная ошибка",
+  "@errorUnknown": {
+    "description": "Неизвестная ошибка"
+  },
+  "errorOccurred": "Произошла ошибка: {error}",
+  "@errorOccurred": {
+    "description": "Общая ошибка",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Текст ошибки"
+      }
+    }
+  },
+  
+  "loadingDataError": "Ошибка загрузки данных: {error}",
+  "@loadingDataError": {
+    "description": "Ошибка загрузки данных",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Текст ошибки"
+      }
+    }
+  },
+  "updateError": "Ошибка обновления: {error}",
+  "@updateError": {
+    "description": "Ошибка обновления",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Текст ошибки"
+      }
+    }
+  },
+  "deleteError": "Ошибка удаления: {error}",
+  "@deleteError": {
+    "description": "Ошибка удаления",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Текст ошибки"
+      }
+    }
+  },
+  "addError": "Ошибка добавления: {error}",
+  "@addError": {
+    "description": "Ошибка добавления",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Текст ошибки"
+      }
+    }
+  },
+  
+  "settings": "Настройки",
+  "@settings": {
+    "description": "Настройки"
+  },
+  "logout": "Выйти",
+  "@logout": {
+    "description": "Выход из системы"
+  },
+  
+  "ttsError": "Ошибка воспроизведения: {error}",
+  "@ttsError": {
+    "description": "Ошибка TTS",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Текст ошибки"
+      }
+    }
+  },
+  "ttsStatus": "Ошибка: {error}",
+  "@ttsStatus": {
+    "description": "Статус TTS",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "description": "Текст ошибки"
+      }
+    }
+  },
+  "errorCopied": "Ошибка скопирована в буфер обмена",
+  "@errorCopied": {
+    "description": "Ошибка скопирована"
+  },
+  "errorCopiedShort": "Ошибка скопирована",
+  "@errorCopiedShort": {
+    "description": "Ошибка скопирована (краткая)"
+  }
+}

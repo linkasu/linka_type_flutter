@@ -42,14 +42,14 @@ Map<String, dynamic> _$LoginUserToJson(LoginUser instance) => <String, dynamic>{
 LoginResponse _$LoginResponseFromJson(Map<String, dynamic> json) =>
     LoginResponse(
       token: json['token'] as String,
-      refreshToken: json['refreshToken'] as String?,
+      refreshToken: json['refresh_token'] as String?,
       user: LoginUser.fromJson(json['user'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$LoginResponseToJson(LoginResponse instance) =>
     <String, dynamic>{
       'token': instance.token,
-      'refreshToken': instance.refreshToken,
+      'refresh_token': instance.refreshToken,
       'user': instance.user,
     };
 

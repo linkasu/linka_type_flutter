@@ -41,6 +41,7 @@ class LoginUser {
 @JsonSerializable()
 class LoginResponse {
   final String token;
+  @JsonKey(name: 'refresh_token')
   final String? refreshToken;
   final LoginUser user;
 

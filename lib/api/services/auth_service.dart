@@ -1,85 +1,64 @@
 import '../models/auth_models.dart';
 import '../utils/token_manager.dart';
+import '../exceptions.dart';
 import 'api_client.dart';
-import 'dart:developer' as developer;
 
 class AuthService {
   final ApiClient _apiClient = ApiClient();
 
   Future<LoginResponse> login(String email, String password) async {
     try {
-      developer.log('Начинаю процесс авторизации для email: $email');
-
       final request = LoginRequest(email: email, password: password);
-      developer.log('Отправляю запрос на /login');
-
       final response = await _apiClient.post('/login', body: request.toJson());
-      developer.log('Получен ответ от сервера: ${response.toString()}');
-
       final loginResponse = LoginResponse.fromJson(response);
-      developer.log('Ответ успешно десериализован');
 
-      developer.log('Сохраняю токен в TokenManager');
-      await TokenManager.saveToken(loginResponse.token);
-
-      if (loginResponse.refreshToken != null &&
-          loginResponse.refreshToken!.isNotEmpty) {
-        developer.log('Сохраняю refresh token');
-        await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
+      // Проверяем, что refresh token пришел
+      if (loginResponse.refreshToken == null ||
+          loginResponse.refreshToken!.isEmpty) {
+        throw AuthenticationException(
+            'Login failed: refresh token not provided by server');
       }
 
-      developer.log('Сохраняю информацию о пользователе');
+      await TokenManager.saveToken(loginResponse.token);
+      await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
       await TokenManager.saveUserInfo(
         loginResponse.user.id,
         loginResponse.user.email,
       );
 
-      developer.log('Авторизация завершена успешно');
       return loginResponse;
-    } catch (e, stackTrace) {
-      developer.log('Ошибка при авторизации: $e');
-      developer.log('Stack trace: $stackTrace');
+    } catch (e) {
       rethrow;
     }
   }
 
   Future<RegisterResponse> register(String email, String password) async {
     try {
-      developer.log('Начинаю процесс регистрации для email: $email');
-
       final request = RegisterRequest(email: email, password: password);
-      developer.log('Отправляю запрос на /register');
-
       final response =
           await _apiClient.post('/register', body: request.toJson());
-      developer.log('Получен ответ от сервера: ${response.toString()}');
-
       final registerResponse = RegisterResponse.fromJson(response);
-      developer.log('Ответ успешно десериализован');
+
+      // Проверяем, что refresh token пришел
+      if (registerResponse.refreshToken == null ||
+          registerResponse.refreshToken!.isEmpty) {
+        throw AuthenticationException(
+            'Registration failed: refresh token not provided by server');
+      }
 
       // Сохраняем токен если он есть
       if (registerResponse.token.isNotEmpty) {
-        developer.log('Сохраняю токен в TokenManager');
         await TokenManager.saveToken(registerResponse.token);
       }
 
-      if (registerResponse.refreshToken != null &&
-          registerResponse.refreshToken!.isNotEmpty) {
-        developer.log('Сохраняю refresh token');
-        await TokenManager.saveRefreshToken(registerResponse.refreshToken!);
-      }
-
-      developer.log('Сохраняю информацию о пользователе');
+      await TokenManager.saveRefreshToken(registerResponse.refreshToken!);
       await TokenManager.saveUserInfo(
         registerResponse.user.id,
         registerResponse.user.email,
       );
 
-      developer.log('Регистрация завершена успешно');
       return registerResponse;
-    } catch (e, stackTrace) {
-      developer.log('Ошибка при регистрации: $e');
-      developer.log('Stack trace: $stackTrace');
+    } catch (e) {
       rethrow;
     }
   }
@@ -165,28 +144,38 @@ class AuthService {
     try {
       final refreshToken = await TokenManager.getRefreshToken();
       if (refreshToken == null) {
-        throw Exception('No refresh token available');
+        throw AuthenticationException('No refresh token available');
       }
-
-      developer.log('Обновляю токен с помощью refresh token');
 
       // Создаем запрос с refresh token в теле
       final request = {'refreshToken': refreshToken};
       final response = await _apiClient.post('/refresh-token', body: request);
-
       final loginResponse = LoginResponse.fromJson(response);
 
-      developer.log('Токен успешно обновлен, сохраняю новые токены');
+      // Проверяем, что токен действительно обновился
+      if (loginResponse.token.isEmpty) {
+        throw AuthenticationException(
+            'Failed to refresh token: empty token received');
+      }
+
       await TokenManager.saveToken(loginResponse.token);
       if (loginResponse.refreshToken != null &&
           loginResponse.refreshToken!.isNotEmpty) {
         await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
       }
 
+      // Дополнительная проверка: убеждаемся, что токен сохранился
+      final savedToken = await TokenManager.getToken();
+      if (savedToken != loginResponse.token) {
+        throw AuthenticationException('Failed to save refreshed token');
+      }
+
       return loginResponse;
     } catch (e) {
-      developer.log('Ошибка при обновлении токена: $e');
-      rethrow;
+      if (e is AuthenticationException) {
+        rethrow;
+      }
+      throw AuthenticationException('Token refresh failed: ${e.toString()}');
     }
   }
 

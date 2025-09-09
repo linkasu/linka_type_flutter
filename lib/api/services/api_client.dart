@@ -107,8 +107,11 @@ class ApiClient {
           return result;
         } catch (e) {
           _isRefreshing = false;
-          // Очищаем токен и выбрасываем ошибку
-          await TokenManager.clearAll();
+          // Очищаем токен только если это не AuthenticationException (уже очищено в _attemptAutoRelogin)
+          if (e is! AuthenticationException) {
+            await TokenManager.clearAll();
+          }
+          rethrow;
         }
       }
 
@@ -123,8 +126,8 @@ class ApiClient {
   Future<void> _attemptAutoRelogin() async {
     try {
       final refreshToken = await TokenManager.getRefreshToken();
-      if (refreshToken == null) {
-        throw Exception('No refresh token available');
+      if (refreshToken == null || refreshToken.isEmpty) {
+        throw AuthenticationException('No refresh token available');
       }
 
       developer.log('Пытаюсь обновить токен автоматически');
@@ -143,20 +146,38 @@ class ApiClient {
         final responseData = jsonDecode(response.body) as Map<String, dynamic>;
         final loginResponse = LoginResponse.fromJson(responseData);
 
+        // Проверяем, что токен действительно получен
+        if (loginResponse.token.isEmpty) {
+          throw AuthenticationException(
+              'Failed to refresh token: empty token received');
+        }
+
         await TokenManager.saveToken(loginResponse.token);
         if (loginResponse.refreshToken != null &&
             loginResponse.refreshToken!.isNotEmpty) {
           await TokenManager.saveRefreshToken(loginResponse.refreshToken!);
         }
 
+        // Дополнительная проверка сохранения токена
+        final savedToken = await TokenManager.getToken();
+        if (savedToken != loginResponse.token) {
+          throw AuthenticationException('Failed to save refreshed token');
+        }
+
         developer.log('Токен успешно обновлен автоматически');
       } else {
-        throw Exception('Failed to refresh token: ${response.statusCode}');
+        final errorBody = response.body.isNotEmpty
+            ? jsonDecode(response.body) as Map<String, dynamic>
+            : <String, dynamic>{};
+        throw AuthenticationException(
+            'Failed to refresh token: ${response.statusCode} - ${errorBody['message'] ?? 'Unknown error'}');
       }
     } catch (e) {
       developer.log('Ошибка при автоматическом обновлении токена: $e');
-      // Очищаем все данные при неудачном refresh
-      await TokenManager.clearAll();
+      // Очищаем все данные при неудачном refresh только если это не AuthenticationException
+      if (e is! AuthenticationException) {
+        await TokenManager.clearAll();
+      }
       rethrow;
     }
   }

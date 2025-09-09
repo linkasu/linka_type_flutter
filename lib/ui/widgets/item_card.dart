@@ -24,47 +24,100 @@ class ItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const double baseFontSize = 12.0;
+    const double cardHeight = baseFontSize * 5; // высота: 5em
+    
     return GestureDetector(
       onTap: onTap,
       onLongPress: () => _showContextMenu(context),
       onSecondaryTapDown: (details) => _showContextMenu(context),
-      child: Card(
-        child: ClipRect(
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, color: AppTheme.primaryColor, size: 16),
-                  const SizedBox(height: 2),
-                ],
-                Flexible(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+      child: Container(
+        height: cardHeight,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              Colors.grey.shade50,
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(
+            color: Colors.grey.shade200,
+            width: 1,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        icon, 
+                        color: AppTheme.primaryColor, 
+                        size: 16,
+                      ),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 1),
+                    const SizedBox(height: 6),
+                  ],
                   Flexible(
                     child: Text(
-                      subtitle!,
-                      style: const TextStyle(fontSize: 9, color: Colors.grey),
-                      textAlign: TextAlign.center,
+                      title,
+                      style: const TextStyle(
+                        fontSize: baseFontSize,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                        letterSpacing: 0.2,
+                      ),
                       overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
                     ),
                   ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Flexible(
+                      child: Text(
+                        subtitle!,
+                        style: TextStyle(
+                          fontSize: 9, 
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),

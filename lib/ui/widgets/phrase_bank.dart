@@ -92,7 +92,7 @@ class _PhraseBankState extends State<PhraseBank> {
           ),
 
           // Контент
-          Expanded(
+          Flexible(
             child: _showCategories
                 ? _buildCategoriesGrid()
                 : _buildStatementsGrid(),
@@ -127,33 +127,43 @@ class _PhraseBankState extends State<PhraseBank> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Определяем количество колонок в зависимости от ширины экрана
-        final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
-        final childAspectRatio = constraints.maxWidth > 600 ? 2.5 : 6.0;
-
-        return GridView.builder(
+        final isMobile = constraints.maxWidth < 600;
+        final cardWidth = isMobile ? constraints.maxWidth - 32 : (constraints.maxWidth - 48) / 2; // 100% на мобилках, 50% на десктопе
+        
+        return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            childAspectRatio: childAspectRatio,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
-          itemCount: widget.categories.length,
-          itemBuilder: (context, index) {
-            final category = widget.categories[index];
-            final statementCount = widget.statements
-                .where((s) => s.categoryId == category.id)
-                .length;
+          child: Wrap(
+            spacing: 12, // 1em отступы между карточками
+            runSpacing: 12, // 1em отступы между рядами
+            children: widget.categories.map((category) {
+              final statementCount = widget.statements
+                  .where((s) => s.categoryId == category.id)
+                  .length;
 
-            return CategoryCard(
-              category: category,
-              statementCount: statementCount,
-              onTap: () => widget.onCategorySelected(category),
-              onEdit: () => widget.onEditCategory(category),
-              onDelete: () => widget.onDeleteCategory(category),
-            );
-          },
+              return TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 300),
+                tween: Tween(begin: 0.0, end: 1.0),
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: 0.8 + (0.2 * value),
+                    child: Opacity(
+                      opacity: value,
+                      child: SizedBox(
+                        width: cardWidth,
+                        child: CategoryCard(
+                          category: category,
+                          statementCount: statementCount,
+                          onTap: () => widget.onCategorySelected(category),
+                          onEdit: () => widget.onEditCategory(category),
+                          onDelete: () => widget.onDeleteCategory(category),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }).toList(),
+          ),
         );
       },
     );
@@ -188,29 +198,38 @@ class _PhraseBankState extends State<PhraseBank> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Определяем количество колонок в зависимости от ширины экрана
-        final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
-        final childAspectRatio = constraints.maxWidth > 600 ? 2.5 : 6.0;
-
-        return GridView.builder(
+        final isMobile = constraints.maxWidth < 600;
+        final cardWidth = isMobile ? constraints.maxWidth - 32 : (constraints.maxWidth - 48) / 2; // 100% на мобилках, 50% на десктопе
+        
+        return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            childAspectRatio: childAspectRatio,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
+          child: Wrap(
+            spacing: 12, // 1em отступы между карточками
+            runSpacing: 12, // 1em отступы между рядами
+            children: statements.map((statement) {
+              return TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 300),
+                tween: Tween(begin: 0.0, end: 1.0),
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: 0.8 + (0.2 * value),
+                    child: Opacity(
+                      opacity: value,
+                      child: SizedBox(
+                        width: cardWidth,
+                        child: StatementCard(
+                          statement: statement,
+                          onTap: () => widget.onSayStatement(statement),
+                          onEdit: () => widget.onEditStatement(statement),
+                          onDelete: () => widget.onDeleteStatement(statement),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }).toList(),
           ),
-          itemCount: statements.length,
-          itemBuilder: (context, index) {
-            final statement = statements[index];
-
-            return StatementCard(
-              statement: statement,
-              onTap: () => widget.onSayStatement(statement),
-              onEdit: () => widget.onEditStatement(statement),
-              onDelete: () => widget.onDeleteStatement(statement),
-            );
-          },
         );
       },
     );

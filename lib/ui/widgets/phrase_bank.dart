@@ -94,7 +94,7 @@ class _PhraseBankState extends State<PhraseBank> {
                   ),
                 const Icon(Icons.library_books, color: AppTheme.primaryColor),
                 const SizedBox(width: 8),
-                Flexible(
+                Expanded(
                   child: Text(
                     _showCategories
                         ? 'Выберите категорию'
@@ -106,7 +106,6 @@ class _PhraseBankState extends State<PhraseBank> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.sort),
                   onPressed: _showSortDialog,

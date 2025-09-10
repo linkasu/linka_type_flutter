@@ -1,6 +1,5 @@
 import '../api/api.dart';
 import '../api/models/statement.dart';
-import 'offline_data_service.dart';
 
 class BulkEditResult {
   final bool success;
@@ -27,7 +26,7 @@ class BulkEditValidation {
 }
 
 class StatementService {
-  final OfflineDataService _dataService = OfflineDataService();
+  final DataService _dataService = DataService();
 
   BulkEditValidation validateBulkEditText(String text) {
     final lines = text.split('\n').map((line) => line.trim()).toList();

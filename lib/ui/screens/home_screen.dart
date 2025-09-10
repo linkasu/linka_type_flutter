@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/tts_service.dart';
 import '../../services/statement_service.dart';
-import '../../services/offline_data_service.dart';
-import '../../services/offline_provider.dart';
+import '../../services/data_refresh_service.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
 import '../widgets/text_input_block.dart';
@@ -20,8 +19,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TTSService _ttsService = TTSService.instance;
-  late final OfflineDataService _dataService;
+  final DataService _dataService = DataService();
   final StatementService _statementService = StatementService();
+  final DataRefreshService _refreshService = DataRefreshService();
   final FocusNode _phraseBankFocus = FocusNode();
 
   List<Category> _categories = [];
@@ -38,15 +38,150 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Получаем сервис только после того, как виджет встроен в дерево
+    // Получаем данные при первой загрузке
     if (!mounted) return;
 
-    _dataService = OfflineProvider.offlineServiceOf(context)!;
     _loadData();
+    _setupDataRefresh();
   }
 
   void _setupShortcuts() {
     // Shortcuts are now handled globally in main.dart
+  }
+
+  void _setupDataRefresh() {
+    // Настраиваем callbacks для обработки обновлений данных
+    _refreshService.setCallbacks(
+      onCategoriesUpdated: _onCategoriesUpdated,
+      onStatementsUpdated: _onStatementsUpdated,
+      onCategoryStatementsUpdated: _onCategoryStatementsUpdated,
+    );
+
+    // Запускаем периодическую проверку каждые 5 секунд
+    _refreshService.startPeriodicRefresh();
+
+    print('HomeScreen: Data refresh service started');
+  }
+
+  void _onCategoriesUpdated(List<Category> newCategories) {
+    if (!mounted) return;
+
+    // Проверяем, изменились ли категории
+    final hasChanges = !_areCategoriesEqual(_categories, newCategories);
+
+    if (hasChanges) {
+      setState(() {
+        _categories = newCategories;
+
+        // Если выбранная категория была удалена, сбрасываем выбор
+        if (_selectedCategory != null) {
+          final stillExists =
+              newCategories.any((cat) => cat.id == _selectedCategory!.id);
+          if (!stillExists) {
+            _selectedCategory = null;
+          }
+        }
+      });
+
+      // Показываем уведомление о обновлении
+      _showUpdateNotification('Категории обновлены');
+
+      print('HomeScreen: Categories updated from server');
+    }
+  }
+
+  void _onStatementsUpdated(List<Statement> newStatements) {
+    if (!mounted) return;
+
+    // Проверяем, изменились ли фразы
+    final hasChanges = !_areStatementsEqual(_statements, newStatements);
+
+    if (hasChanges) {
+      setState(() {
+        _statements = newStatements;
+      });
+
+      // Показываем уведомление о обновлении
+      _showUpdateNotification('Фразы обновлены');
+
+      print('HomeScreen: Statements updated from server');
+    }
+  }
+
+  void _onCategoryStatementsUpdated(
+      Category? category, List<Statement> statements) {
+    if (!mounted || category == null) return;
+
+    // Обновляем фразы только для выбранной категории
+    final categoryStatements =
+        statements.where((stmt) => stmt.categoryId == category.id).toList();
+
+    final currentCategoryStatements =
+        _statements.where((stmt) => stmt.categoryId == category.id).toList();
+
+    final hasChanges =
+        !_areStatementsEqual(currentCategoryStatements, categoryStatements);
+
+    if (hasChanges) {
+      // Обновляем только фразы этой категории
+      final otherStatements =
+          _statements.where((stmt) => stmt.categoryId != category.id).toList();
+
+      setState(() {
+        _statements = [...otherStatements, ...categoryStatements];
+      });
+
+      _showUpdateNotification(
+          'Фразы в категории "${category.title}" обновлены');
+
+      print('HomeScreen: Statements for category "${category.title}" updated');
+    }
+  }
+
+  bool _areCategoriesEqual(List<Category> list1, List<Category> list2) {
+    if (list1.length != list2.length) return false;
+
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i].id != list2[i].id ||
+          list1[i].title != list2[i].title ||
+          list1[i].updatedAt != list2[i].updatedAt) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _areStatementsEqual(List<Statement> list1, List<Statement> list2) {
+    if (list1.length != list2.length) return false;
+
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i].id != list2[i].id ||
+          list1[i].title != list2[i].title ||
+          list1[i].categoryId != list2[i].categoryId ||
+          list1[i].updatedAt != list2[i].updatedAt) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void _showUpdateNotification(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+        backgroundColor: Colors.green,
+        action: SnackBarAction(
+          label: 'ОК',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _loadData() async {
@@ -107,6 +242,15 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedCategory = category;
     });
+
+    // Устанавливаем категорию для мониторинга в refresh service
+    _refreshService.setMonitoredCategory(category);
+
+    // Если выбрана категория, сразу проверяем её фразы
+    if (category != null) {
+      _refreshService.checkCategoryStatements(category);
+      print('HomeScreen: Started monitoring category "${category.title}"');
+    }
   }
 
   Future<void> _editStatement(Statement statement) async {
@@ -434,6 +578,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _refreshService.dispose();
     _phraseBankFocus.dispose();
     super.dispose();
   }

@@ -9,7 +9,6 @@ export 'models/data_models.dart';
 export 'services/api_client.dart';
 export 'services/auth_service.dart';
 export 'services/data_service.dart';
-export 'services/websocket_service.dart';
 
 // Utils
 export 'utils/token_manager.dart';

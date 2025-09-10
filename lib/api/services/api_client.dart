@@ -107,10 +107,9 @@ class ApiClient {
           return result;
         } catch (e) {
           _isRefreshing = false;
-          // Очищаем токен только если это не AuthenticationException (уже очищено в _attemptAutoRelogin)
-          if (e is! AuthenticationException) {
-            await TokenManager.clearAll();
-          }
+
+          print('Failed to refresh token: $e');
+
           rethrow;
         }
       }
@@ -174,10 +173,7 @@ class ApiClient {
       }
     } catch (e) {
       developer.log('Ошибка при автоматическом обновлении токена: $e');
-      // Очищаем все данные при неудачном refresh только если это не AuthenticationException
-      if (e is! AuthenticationException) {
-        await TokenManager.clearAll();
-      }
+
       rethrow;
     }
   }

@@ -30,6 +30,7 @@ class _AuthCheckerState extends State<AuthChecker> {
         _isLoading = false;
       });
     } catch (e) {
+      print('AuthChecker: Error checking auth status: $e');
       setState(() {
         _isLoggedIn = false;
         _isLoading = false;
@@ -40,7 +41,18 @@ class _AuthCheckerState extends State<AuthChecker> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Проверка авторизации...'),
+            ],
+          ),
+        ),
+      );
     }
 
     return _isLoggedIn ? const HomeScreen() : const LoginScreen();

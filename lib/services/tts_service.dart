@@ -158,7 +158,6 @@ class TTSService {
     } catch (e) {
       _lastError = e.toString();
       _eventController.add('error: $e');
-      print('Ошибка нативного TTS: $e');
     }
   }
 
@@ -188,8 +187,6 @@ class TTSService {
             final file = File('${tempDir.path}/$fileName');
             await file.writeAsBytes(bytes);
 
-            print('Аудио сохранено: ${file.path}');
-
             // Воспроизводим аудио
             await _audioPlayer?.play(DeviceFileSource(file.path));
 
@@ -198,7 +195,6 @@ class TTSService {
               _eventController.add('end');
             });
           } catch (e) {
-            print('Ошибка воспроизведения: $e');
             _lastError = 'Ошибка воспроизведения: $e';
             _eventController.add('error: $e');
           }
@@ -227,7 +223,6 @@ class TTSService {
       final file = File('${downloadsDir.path}/$fileName');
       await file.writeAsBytes(bytes);
 
-      print('Аудиофайл сохранен: ${file.path}');
       _eventController.add('end');
     } catch (e) {
       _lastError = e.toString();
@@ -243,9 +238,7 @@ class TTSService {
         await _flutterTts?.stop();
       }
       _eventController.add('end');
-    } catch (e) {
-      print('Ошибка остановки: $e');
-    }
+    } catch (e) {}
   }
 
   Future<void> playLastAudio() async {
@@ -264,8 +257,6 @@ class TTSService {
         );
         final lastFile = files.first;
 
-        print('Воспроизведение: ${lastFile.path}');
-
         // Воспроизводим через audioplayers
         await _audioPlayer?.play(DeviceFileSource(lastFile.path));
 
@@ -274,12 +265,10 @@ class TTSService {
           _eventController.add('end');
         });
       } else {
-        print('Нет сохраненных аудиофайлов');
         _lastError = 'Нет сохраненных аудиофайлов';
         _eventController.add('error: Нет сохраненных аудиофайлов');
       }
     } catch (e) {
-      print('Ошибка воспроизведения: $e');
       _lastError = 'Ошибка воспроизведения: $e';
       _eventController.add('error: $e');
     }
@@ -450,7 +439,6 @@ class TTSService {
               isDefault: voiceMap['default'] == true,
             );
           } else {
-            print('Неожиданный тип voice: ${voice.runtimeType}');
             return TTSVoice(
               voiceURI: 'unknown',
               text: 'Неизвестный голос',
@@ -480,11 +468,9 @@ class TTSService {
 
         return voiceList;
       } else {
-        print('voices не является List: ${voices.runtimeType}');
         return [];
       }
     } catch (e) {
-      print('Ошибка получения офлайн голосов: $e');
       return [];
     }
   }

@@ -54,9 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       setState(() {
         _userEmail = email;
       });
-    } catch (e) {
-      print('Ошибка загрузки информации пользователя: $e');
-    }
+    } catch (e) {}
   }
 
   Future<void> _loadSettings() async {
@@ -75,9 +73,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
       final selectedVoice = await _ttsService.getSelectedVoice();
       _selectedVoice = selectedVoice.voiceURI;
-    } catch (e) {
-      print('Ошибка загрузки настроек: $e');
-    }
+    } catch (e) {}
 
     setState(() {
       _isLoading = false;

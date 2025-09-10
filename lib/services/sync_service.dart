@@ -11,7 +11,6 @@ import '../api/models/sync_status.dart';
 import '../api/exceptions.dart';
 import 'local_database_service.dart';
 import 'connectivity_service.dart';
-import 'notification_service.dart';
 
 class SyncService {
   final LocalDatabaseService _localDb = LocalDatabaseService();
@@ -41,11 +40,8 @@ class SyncService {
     }
 
     _syncStatusController.add(SyncProcessStatus.syncing);
-    final notificationService = NotificationService();
 
     try {
-      notificationService.showSyncStarted();
-
       // Синхронизируем фразы
       await _syncStatements();
 
@@ -53,13 +49,11 @@ class SyncService {
       await _syncCategories();
 
       // Обрабатываем очередь синхронизации
-      final processedCount = await _processSyncQueue();
+      await _processSyncQueue();
 
       _syncStatusController.add(SyncProcessStatus.completed);
-      notificationService.showSyncCompleted(processedCount);
     } catch (e) {
       _syncStatusController.add(SyncProcessStatus.error);
-      notificationService.showSyncError(e.toString());
       rethrow;
     }
   }
@@ -213,16 +207,8 @@ class SyncService {
     LocalStatement localStatement,
     dynamic serverStatement,
   ) async {
-    final notificationService = NotificationService();
-
     // Стратегия разрешения конфликтов: сервер имеет приоритет
     // В будущем можно добавить более сложную логику выбора версии
-    notificationService.showWarning(
-      'Конфликт данных',
-      message:
-          'Фраза "${localStatement.title}" была изменена на другом устройстве. Используется версия с сервера.',
-      autoDismissDelay: const Duration(seconds: 5),
-    );
 
     // Обновляем локальную версию данными с сервера
     await _localDb.updateStatement(
@@ -234,15 +220,6 @@ class SyncService {
     LocalCategory localCategory,
     dynamic serverCategory,
   ) async {
-    final notificationService = NotificationService();
-
-    notificationService.showWarning(
-      'Конфликт данных',
-      message:
-          'Категория "${localCategory.title}" была изменена на другом устройстве. Используется версия с сервера.',
-      autoDismissDelay: const Duration(seconds: 5),
-    );
-
     // Обновляем локальную версию данными с сервера
     await _localDb.updateCategory(
       LocalCategory.fromApi(serverCategory),

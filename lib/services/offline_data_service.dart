@@ -10,7 +10,6 @@ import 'local_database_service.dart';
 import 'connectivity_service.dart';
 import 'sync_service.dart';
 import 'sync_queue_service.dart';
-import 'notification_service.dart';
 
 class OfflineDataService {
   final LocalDatabaseService _localDb = LocalDatabaseService();
@@ -24,13 +23,7 @@ class OfflineDataService {
 
     // Слушаем изменения состояния подключения
     _connectivity.statusStream.listen((status) {
-      final notificationService = NotificationService();
-
-      if (status == ConnectivityStatus.offline) {
-        notificationService.showOfflineMode();
-      } else if (status == ConnectivityStatus.online) {
-        notificationService.showConnectionRestored();
-      }
+      // Уведомления о подключении убраны по просьбе пользователя
     });
   }
 

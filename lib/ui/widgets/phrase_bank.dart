@@ -18,6 +18,7 @@ class PhraseBank extends StatefulWidget {
   final VoidCallback onAddCategory;
   final Category? selectedCategory;
   final Function(Category?) onCategorySelected;
+  final Function(List<Statement>, String)? onBulkEditStatements;
 
   const PhraseBank({
     super.key,
@@ -32,6 +33,7 @@ class PhraseBank extends StatefulWidget {
     required this.onAddCategory,
     this.selectedCategory,
     required this.onCategorySelected,
+    this.onBulkEditStatements,
   });
 
   @override
@@ -117,12 +119,18 @@ class _PhraseBankState extends State<PhraseBank> {
                     onPressed: widget.onAddCategory,
                     tooltip: 'Добавить категорию',
                   )
-                else
+                else ...[
+                  IconButton(
+                    icon: const Icon(Icons.edit_note),
+                    onPressed: _showBulkEditDialog,
+                    tooltip: 'Массовое редактирование',
+                  ),
                   IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: widget.onAddStatement,
                     tooltip: 'Добавить фразу',
                   ),
+                ],
               ],
             ),
           ),
@@ -388,6 +396,86 @@ class _PhraseBankState extends State<PhraseBank> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showBulkEditDialog() {
+    final statements = _getSortedStatements()
+        .where((s) => s.categoryId == _selectedCategory!.id)
+        .toList();
+
+    final initialText = statements.map((s) => s.title).join('\n');
+
+    showDialog(
+      context: context,
+      builder: (context) => _BulkEditDialog(
+        initialText: initialText,
+        onSave: (newText) {
+          Navigator.of(context).pop();
+          widget.onBulkEditStatements?.call(statements, newText);
+        },
+      ),
+    );
+  }
+}
+
+class _BulkEditDialog extends StatefulWidget {
+  final String initialText;
+  final Function(String) onSave;
+
+  const _BulkEditDialog({
+    required this.initialText,
+    required this.onSave,
+  });
+
+  @override
+  State<_BulkEditDialog> createState() => _BulkEditDialogState();
+}
+
+class _BulkEditDialogState extends State<_BulkEditDialog> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialText);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Массовое редактирование'),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 400,
+        child: TextField(
+          controller: _controller,
+          maxLines: null,
+          expands: true,
+          textAlignVertical: TextAlignVertical.top,
+          decoration: const InputDecoration(
+            hintText:
+                'Каждая строка - отдельная фраза. Пустые строки удаляют фразы.',
+            border: OutlineInputBorder(),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Отмена'),
+        ),
+        ElevatedButton(
+          onPressed: () => widget.onSave(_controller.text),
+          child: const Text('Сохранить'),
+        ),
+      ],
     );
   }
 }

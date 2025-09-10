@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/tts_service.dart';
+import '../../services/statement_service.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
 import '../widgets/text_input_block.dart';
@@ -17,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TTSService _ttsService = TTSService.instance;
   final DataService _dataService = DataService();
+  final StatementService _statementService = StatementService();
   final FocusNode _phraseBankFocus = FocusNode();
 
   List<Category> _categories = [];
@@ -285,6 +287,62 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _bulkEditStatements(
+      List<Statement> statements, String newText) async {
+    final categoryId = statements.isNotEmpty
+        ? statements.first.categoryId
+        : _selectedCategory?.id;
+
+    if (categoryId == null) {
+      _showErrorSnackBar('Ошибка: категория не найдена');
+      return;
+    }
+
+    // Валидация
+    final validation = _statementService.validateBulkEditText(newText);
+    if (!validation.isValid) {
+      _showErrorSnackBar(validation.error!);
+      return;
+    }
+
+    // Выполняем массовое редактирование
+    final result = await _statementService.bulkEditStatements(
+      statements,
+      newText,
+      categoryId,
+    );
+
+    if (result.success) {
+      await _loadData();
+      if (mounted) {
+        _showSuccessSnackBar(
+          'Обновлено: удалено ${result.deletedCount}, добавлено ${result.addedCount} фраз',
+        );
+      }
+    } else {
+      _showErrorSnackBar('Ошибка обновления: ${result.error}');
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -337,6 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onAddCategory: _addCategory,
                             selectedCategory: _selectedCategory,
                             onCategorySelected: _onCategorySelected,
+                            onBulkEditStatements: _bulkEditStatements,
                           ),
                         ),
                       ),

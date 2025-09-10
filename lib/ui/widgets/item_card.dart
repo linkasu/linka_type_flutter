@@ -31,33 +31,33 @@ class ItemCard extends StatelessWidget {
       child: Card(
         child: ClipRect(
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(12),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (icon != null) ...[
-                  Icon(icon, color: AppTheme.primaryColor, size: 16),
-                  const SizedBox(height: 2),
+                  Icon(icon, color: AppTheme.primaryColor, size: 20),
+                  const SizedBox(height: 4),
                 ],
                 Flexible(
                   child: Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
+                    maxLines: 2,
                     textAlign: TextAlign.center,
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 1),
+                  const SizedBox(height: 4),
                   Flexible(
                     child: Text(
                       subtitle!,
-                      style: const TextStyle(fontSize: 9, color: Colors.grey),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,

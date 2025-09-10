@@ -129,7 +129,18 @@ class _PhraseBankState extends State<PhraseBank> {
       builder: (context, constraints) {
         // Определяем количество колонок в зависимости от ширины экрана
         final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
-        final childAspectRatio = constraints.maxWidth > 600 ? 2.5 : 6.0;
+
+        // Высота блока = 1.5em (1.5 размера шрифта)
+        final fontSize = 16.0; // размер шрифта из ItemCard
+        final textScaleFactor = MediaQuery.textScaleFactorOf(context);
+        final emSize = fontSize * textScaleFactor;
+        final blockHeight = emSize * 1.5;
+
+        // Учитываем отступы сетки (16px с каждой стороны)
+        final availableWidth =
+            (constraints.maxWidth - 32 - (crossAxisCount - 1) * 16) /
+                crossAxisCount;
+        final childAspectRatio = availableWidth / blockHeight;
 
         return GridView.builder(
           padding: const EdgeInsets.all(16),
@@ -190,7 +201,18 @@ class _PhraseBankState extends State<PhraseBank> {
       builder: (context, constraints) {
         // Определяем количество колонок в зависимости от ширины экрана
         final crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
-        final childAspectRatio = constraints.maxWidth > 600 ? 2.5 : 6.0;
+
+        // Высота блока = 1.5em (1.5 размера шрифта)
+        final fontSize = 16.0; // размер шрифта из ItemCard
+        final textScaleFactor = MediaQuery.textScaleFactorOf(context);
+        final emSize = fontSize * textScaleFactor;
+        final blockHeight = emSize * 1.5;
+
+        // Учитываем отступы сетки (16px с каждой стороны)
+        final availableWidth =
+            (constraints.maxWidth - 32 - (crossAxisCount - 1) * 16) /
+                crossAxisCount;
+        final childAspectRatio = availableWidth / blockHeight;
 
         return GridView.builder(
           padding: const EdgeInsets.all(16),

@@ -14,6 +14,8 @@ void main() {
         title: 'Тестовая фраза',
         categoryId: 'category-id',
         userId: 'user-id',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
     });
 

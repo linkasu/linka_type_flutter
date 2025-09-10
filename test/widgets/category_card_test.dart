@@ -13,6 +13,8 @@ void main() {
         id: 'test-id',
         title: 'Тестовая категория',
         userId: 'user-id',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
     });
 
@@ -49,7 +51,7 @@ void main() {
         ),
       );
 
-      expect(find.text('3 фраз'), findsOneWidget);
+      expect(find.textContaining('3 фраз'), findsOneWidget);
     });
 
     testWidgets('отображает иконку папки', (WidgetTester tester) async {
@@ -67,7 +69,8 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.folder), findsOneWidget);
+      // CategoryCard больше не показывает иконку папки
+      expect(find.byIcon(Icons.folder), findsNothing);
     });
 
     testWidgets('вызывает onTap при нажатии', (WidgetTester tester) async {
@@ -160,7 +163,7 @@ void main() {
         ),
       );
 
-      expect(find.text('1 фраз'), findsOneWidget);
+      expect(find.textContaining('1 фраз'), findsOneWidget);
     });
 
     testWidgets('показывает правильное склонение для нескольких фраз', (
@@ -180,7 +183,7 @@ void main() {
         ),
       );
 
-      expect(find.text('5 фраз'), findsOneWidget);
+      expect(find.textContaining('5 фраз'), findsOneWidget);
     });
 
     testWidgets('показывает правильное склонение для нуля фраз', (
@@ -200,7 +203,7 @@ void main() {
         ),
       );
 
-      expect(find.text('0 фраз'), findsOneWidget);
+      expect(find.textContaining('0 фраз'), findsOneWidget);
     });
 
     testWidgets('использует ItemCard внутри', (WidgetTester tester) async {

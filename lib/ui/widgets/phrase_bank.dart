@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../../api/models/category.dart';
 import '../../api/models/statement.dart';
@@ -37,9 +38,40 @@ class PhraseBank extends StatefulWidget {
   State<PhraseBank> createState() => _PhraseBankState();
 }
 
+enum SortType {
+  nameAsc,
+  nameDesc,
+  dateAsc,
+  dateDesc,
+}
+
 class _PhraseBankState extends State<PhraseBank> {
   bool get _showCategories => widget.selectedCategory == null;
   Category? get _selectedCategory => widget.selectedCategory;
+  SortType _sortType = SortType.dateAsc;
+
+  static const String _sortTypeKey = 'phrase_bank_sort_type';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSortType();
+  }
+
+  Future<void> _loadSortType() async {
+    final prefs = await SharedPreferences.getInstance();
+    final sortTypeIndex = prefs.getInt(_sortTypeKey) ?? SortType.dateAsc.index;
+    if (mounted) {
+      setState(() {
+        _sortType = SortType.values[sortTypeIndex];
+      });
+    }
+  }
+
+  Future<void> _saveSortType(SortType sortType) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_sortTypeKey, sortType.index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +107,11 @@ class _PhraseBankState extends State<PhraseBank> {
                   ),
                 ),
                 const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.sort),
+                  onPressed: _showSortDialog,
+                  tooltip: 'Сортировка',
+                ),
                 if (_showCategories)
                   IconButton(
                     icon: const Icon(Icons.add),
@@ -138,7 +175,7 @@ class _PhraseBankState extends State<PhraseBank> {
           child: Wrap(
             spacing: 12, // 1em отступы между карточками
             runSpacing: 12, // 1em отступы между рядами
-            children: widget.categories.map((category) {
+            children: _getSortedCategories().map((category) {
               final statementCount = widget.statements
                   .where((s) => s.categoryId == category.id)
                   .length;
@@ -174,7 +211,7 @@ class _PhraseBankState extends State<PhraseBank> {
 
   // Построение сетки фраз
   Widget _buildStatementsGrid() {
-    final statements = widget.statements
+    final statements = _getSortedStatements()
         .where((s) => s.categoryId == _selectedCategory!.id)
         .toList();
 
@@ -238,6 +275,120 @@ class _PhraseBankState extends State<PhraseBank> {
           ),
         );
       },
+    );
+  }
+
+  List<Category> _getSortedCategories() {
+    final categories = List<Category>.from(widget.categories);
+
+    switch (_sortType) {
+      case SortType.nameAsc:
+        categories.sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        break;
+      case SortType.nameDesc:
+        categories.sort(
+            (a, b) => b.title.toLowerCase().compareTo(a.title.toLowerCase()));
+        break;
+      case SortType.dateAsc:
+        categories.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        break;
+      case SortType.dateDesc:
+        categories.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+    }
+
+    return categories;
+  }
+
+  List<Statement> _getSortedStatements() {
+    final statements = List<Statement>.from(widget.statements);
+
+    switch (_sortType) {
+      case SortType.nameAsc:
+        statements.sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        break;
+      case SortType.nameDesc:
+        statements.sort(
+            (a, b) => b.title.toLowerCase().compareTo(a.title.toLowerCase()));
+        break;
+      case SortType.dateAsc:
+        statements.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        break;
+      case SortType.dateDesc:
+        statements.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+    }
+
+    return statements;
+  }
+
+  void _showSortDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Сортировка'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<SortType>(
+              title: const Text('По названию (А-Я)'),
+              value: SortType.nameAsc,
+              groupValue: _sortType,
+              onChanged: (value) {
+                setState(() {
+                  _sortType = value!;
+                });
+                _saveSortType(value!);
+                Navigator.of(context).pop();
+              },
+            ),
+            RadioListTile<SortType>(
+              title: const Text('По названию (Я-А)'),
+              value: SortType.nameDesc,
+              groupValue: _sortType,
+              onChanged: (value) {
+                setState(() {
+                  _sortType = value!;
+                });
+                _saveSortType(value!);
+                Navigator.of(context).pop();
+              },
+            ),
+            RadioListTile<SortType>(
+              title: const Text('По дате (старые)'),
+              value: SortType.dateAsc,
+              groupValue: _sortType,
+              onChanged: (value) {
+                setState(() {
+                  _sortType = value!;
+                });
+                _saveSortType(value!);
+                Navigator.of(context).pop();
+              },
+            ),
+            RadioListTile<SortType>(
+              title: const Text('По дате (новые)'),
+              value: SortType.dateDesc,
+              groupValue: _sortType,
+              onChanged: (value) {
+                setState(() {
+                  _sortType = value!;
+                });
+                _saveSortType(value!);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Отмена'),
+          ),
+        ],
+      ),
     );
   }
 }

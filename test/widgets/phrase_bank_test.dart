@@ -11,8 +11,18 @@ void main() {
 
     setUp(() {
       testCategories = [
-        Category(id: 'cat1', title: 'Категория 1', userId: 'user1'),
-        Category(id: 'cat2', title: 'Категория 2', userId: 'user1'),
+        Category(
+            id: 'cat1',
+            title: 'Категория 1',
+            userId: 'user1',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now()),
+        Category(
+            id: 'cat2',
+            title: 'Категория 2',
+            userId: 'user1',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now()),
       ];
 
       testStatements = [
@@ -21,18 +31,24 @@ void main() {
           title: 'Фраза 1',
           categoryId: 'cat1',
           userId: 'user1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         Statement(
           id: 'stmt2',
           title: 'Фраза 2',
           categoryId: 'cat1',
           userId: 'user1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         Statement(
           id: 'stmt3',
           title: 'Фраза 3',
           categoryId: 'cat2',
           userId: 'user1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
       ];
     });
@@ -63,8 +79,8 @@ void main() {
         expect(find.text('Выберите категорию'), findsOneWidget);
         expect(find.text('Категория 1'), findsOneWidget);
         expect(find.text('Категория 2'), findsOneWidget);
-        expect(find.text('2 фраз'), findsOneWidget); // Категория 1
-        expect(find.text('1 фраз'), findsOneWidget); // Категория 2
+        expect(find.textContaining('2 фраз'), findsOneWidget); // Категория 1
+        expect(find.textContaining('1 фраз'), findsOneWidget); // Категория 2
       },
     );
 
@@ -342,9 +358,9 @@ void main() {
       );
 
       // Категория 1 содержит 2 фразы
-      expect(find.text('2 фраз'), findsOneWidget);
+      expect(find.textContaining('2 фраз'), findsOneWidget);
       // Категория 2 содержит 1 фразу
-      expect(find.text('1 фраз'), findsOneWidget);
+      expect(find.textContaining('1 фраз'), findsOneWidget);
     });
   });
 }

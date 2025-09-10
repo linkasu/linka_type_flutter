@@ -8,8 +8,18 @@ class Category {
   final String title;
   @JsonKey(name: 'userId')
   final String userId;
+  @JsonKey(name: 'createdAt')
+  final DateTime createdAt;
+  @JsonKey(name: 'updatedAt')
+  final DateTime updatedAt;
 
-  Category({required this.id, required this.title, required this.userId});
+  Category({
+    required this.id,
+    required this.title,
+    required this.userId,
+    required this.createdAt,
+    required this.updatedAt,
+  });
 
   factory Category.fromJson(Map<String, dynamic> json) =>
       _$CategoryFromJson(json);

@@ -11,12 +11,18 @@ class Statement {
   final String userId;
   @JsonKey(name: 'categoryId')
   final String categoryId;
+  @JsonKey(name: 'createdAt')
+  final DateTime createdAt;
+  @JsonKey(name: 'updatedAt')
+  final DateTime updatedAt;
 
   Statement({
     required this.id,
     required this.title,
     required this.userId,
     required this.categoryId,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   factory Statement.fromJson(Map<String, dynamic> json) =>

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../services/tts_service.dart';
 import '../../services/statement_service.dart';
+import '../../services/offline_data_service.dart';
+import '../../services/offline_provider.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
 import '../widgets/text_input_block.dart';
 import '../widgets/phrase_bank.dart';
 import '../widgets/crud_dialogs.dart';
+import '../widgets/notification_banner.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,7 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TTSService _ttsService = TTSService.instance;
-  final DataService _dataService = DataService();
+  late final OfflineDataService _dataService;
   final StatementService _statementService = StatementService();
   final FocusNode _phraseBankFocus = FocusNode();
 
@@ -29,8 +32,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
     _setupShortcuts();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Получаем сервис только после того, как виджет встроен в дерево
+    if (!mounted) return;
+
+    _dataService = OfflineProvider.offlineServiceOf(context)!;
+    _loadData();
   }
 
   void _setupShortcuts() {
@@ -362,48 +374,61 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : LayoutBuilder(
-              builder: (context, constraints) {
-                return Column(
-                  children: [
-                    // Блок ввода текста
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextInputBlock(
-                        onSayText: _sayText,
-                        onDownloadText: _downloadText,
-                      ),
-                    ),
-
-                    // Банк фраз
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
-                        child: Focus(
-                          focusNode: _phraseBankFocus,
-                          child: PhraseBank(
-                            categories: _categories,
-                            statements: _statements,
-                            onSayStatement: _sayStatement,
-                            onEditStatement: _editStatement,
-                            onDeleteStatement: _deleteStatement,
-                            onEditCategory: _editCategory,
-                            onDeleteCategory: _deleteCategory,
-                            onAddStatement: _addStatement,
-                            onAddCategory: _addCategory,
-                            selectedCategory: _selectedCategory,
-                            onCategorySelected: _onCategorySelected,
-                            onBulkEditStatements: _bulkEditStatements,
+      body: Stack(
+        children: [
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Column(
+                      children: [
+                        // Блок ввода текста
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: TextInputBlock(
+                            onSayText: _sayText,
+                            onDownloadText: _downloadText,
                           ),
                         ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+
+                        // Банк фраз
+                        Expanded(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+                            child: Focus(
+                              focusNode: _phraseBankFocus,
+                              child: PhraseBank(
+                                categories: _categories,
+                                statements: _statements,
+                                onSayStatement: _sayStatement,
+                                onEditStatement: _editStatement,
+                                onDeleteStatement: _deleteStatement,
+                                onEditCategory: _editCategory,
+                                onDeleteCategory: _deleteCategory,
+                                onAddStatement: _addStatement,
+                                onAddCategory: _addCategory,
+                                selectedCategory: _selectedCategory,
+                                onCategorySelected: _onCategorySelected,
+                                onBulkEditStatements: _bulkEditStatements,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+          // Баннер уведомлений
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: NotificationBanner(),
+          ),
+        ],
+      ),
     );
   }
 

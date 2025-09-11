@@ -1,8 +1,12 @@
 import 'dart:async';
 import '../api/api.dart';
+import '../offline/services/offline_manager.dart';
+import '../offline/models/sync_state.dart';
 
 class DataRefreshService {
   final DataService _dataService = DataService();
+  final OfflineManager _offlineManager;
+
   Timer? _refreshTimer;
   bool _isRefreshing = false;
 
@@ -13,15 +17,28 @@ class DataRefreshService {
   Function(List<Category>)? _onCategoriesUpdated;
   Function(List<Statement>)? _onStatementsUpdated;
   Function(Category?, List<Statement>)? _onCategoryStatementsUpdated;
+  Function(bool)? _onOfflineModeChanged;
+  Function(SyncState)? _onSyncStateChanged;
+
+  DataRefreshService(this._offlineManager) {
+    // Подписываемся на изменения состояния синхронизации
+    _offlineManager.syncStateStream.listen((syncState) {
+      _onSyncStateChanged?.call(syncState);
+    });
+  }
 
   void setCallbacks({
     Function(List<Category>)? onCategoriesUpdated,
     Function(List<Statement>)? onStatementsUpdated,
     Function(Category?, List<Statement>)? onCategoryStatementsUpdated,
+    Function(bool)? onOfflineModeChanged,
+    Function(SyncState)? onSyncStateChanged,
   }) {
     _onCategoriesUpdated = onCategoriesUpdated;
     _onStatementsUpdated = onStatementsUpdated;
     _onCategoryStatementsUpdated = onCategoryStatementsUpdated;
+    _onOfflineModeChanged = onOfflineModeChanged;
+    _onSyncStateChanged = onSyncStateChanged;
   }
 
   /// Запускает периодическую проверку данных каждые 5 секунд
@@ -74,10 +91,7 @@ class DataRefreshService {
 
   Future<void> _checkCategoriesUpdate() async {
     try {
-      final newCategories = await _dataService.getCategories();
-
-      // Здесь можно добавить логику сравнения с текущими категориями
-      // и вызова callback только при изменениях
+      final newCategories = await _offlineManager.getCategories();
 
       if (_onCategoriesUpdated != null) {
         _onCategoriesUpdated!(newCategories);
@@ -89,10 +103,7 @@ class DataRefreshService {
 
   Future<void> _checkStatementsUpdate() async {
     try {
-      final newStatements = await _dataService.getStatements();
-
-      // Здесь можно добавить логику сравнения с текущими фразами
-      // и вызова callback только при изменениях
+      final newStatements = await _offlineManager.getStatements();
 
       if (_onStatementsUpdated != null) {
         _onStatementsUpdated!(newStatements);
@@ -116,8 +127,7 @@ class DataRefreshService {
   Future<void> checkCategoryStatements(Category category) async {
     try {
       // Получаем фразы только для выбранной категории
-      // Предполагаем, что API поддерживает фильтрацию по категории
-      final statements = await _dataService.getStatements();
+      final statements = await _offlineManager.getStatements();
 
       // Фильтруем по категории
       final categoryStatements =

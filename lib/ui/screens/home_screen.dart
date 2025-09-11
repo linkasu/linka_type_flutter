@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/tts_service.dart';
 import '../../services/statement_service.dart';
 import '../../services/data_refresh_service.dart';
+import '../../services/data_manager.dart';
 import '../../api/api.dart';
+import '../../offline/providers/sync_provider.dart';
+import '../../offline/models/sync_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/text_input_block.dart';
 import '../widgets/phrase_bank.dart';
@@ -19,9 +23,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TTSService _ttsService = TTSService.instance;
-  final DataService _dataService = DataService();
   final StatementService _statementService = StatementService();
-  final DataRefreshService _refreshService = DataRefreshService();
+  late final DataManager _dataManager;
+  late final DataRefreshService _refreshService;
   final FocusNode _phraseBankFocus = FocusNode();
 
   List<Category> _categories = [];
@@ -38,6 +42,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    // Инициализируем менеджеры данных
+    _dataManager = context.read<DataManager>();
+    _refreshService = DataRefreshService(_dataManager.offlineManager);
+
     // Получаем данные при первой загрузке
     if (!mounted) return;
 
@@ -55,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onCategoriesUpdated: _onCategoriesUpdated,
       onStatementsUpdated: _onStatementsUpdated,
       onCategoryStatementsUpdated: _onCategoryStatementsUpdated,
+      onSyncStateChanged: _onSyncStateChanged,
     );
 
     // Запускаем периодическую проверку каждые 5 секунд
@@ -138,6 +148,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _onSyncStateChanged(SyncState syncState) {
+    if (!mounted) return;
+
+    // Обновляем UI в зависимости от состояния синхронизации
+    if (syncState.status == SyncStatus.offline) {
+      _showUpdateNotification('Работа в оффлайн режиме');
+    } else if (syncState.status == SyncStatus.synced &&
+        syncState.hasPendingOperations) {
+      _showUpdateNotification('Синхронизация завершена');
+    } else if (syncState.hasError) {
+      _showErrorSnackBar(
+          'Ошибка синхронизации: ${syncState.errorMessage ?? "Неизвестная ошибка"}');
+    }
+  }
+
   bool _areCategoriesEqual(List<Category> list1, List<Category> list2) {
     if (list1.length != list2.length) return false;
 
@@ -190,8 +215,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = true;
       });
 
-      final categories = await _dataService.getCategories();
-      final statements = await _dataService.getStatements();
+      final categories = await _dataManager.getCategories();
+      final statements = await _dataManager.getStatements();
 
       setState(() {
         _categories = categories;
@@ -271,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (result != null) {
       try {
-        await _dataService.updateStatement(
+        await _dataManager.updateStatement(
           statement.id,
           result['text']!,
           result['dropdown']!,
@@ -301,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (confirmed == true) {
       try {
-        await _dataService.deleteStatement(statement.id);
+        await _dataManager.deleteStatement(statement.id);
         await _loadData();
         if (mounted) {
           ScaffoldMessenger.of(
@@ -328,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (result != null) {
       try {
-        await _dataService.updateCategory(category.id, result);
+        await _dataManager.updateCategory(category.id, result);
         await _loadData();
         if (mounted) {
           ScaffoldMessenger.of(
@@ -355,7 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (confirmed == true) {
       try {
-        await _dataService.deleteCategory(category.id);
+        await _dataManager.deleteCategory(category.id);
         await _loadData();
         if (mounted) {
           ScaffoldMessenger.of(
@@ -382,7 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (result != null) {
       try {
-        await _dataService.createCategory(result);
+        await _dataManager.createCategory(result);
         await _loadData();
         if (mounted) {
           ScaffoldMessenger.of(
@@ -423,7 +448,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (result != null) {
       try {
-        await _dataService.createStatement(
+        await _dataManager.createStatement(
           result['text']!,
           result['dropdown']!,
         );

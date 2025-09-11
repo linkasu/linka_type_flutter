@@ -57,3 +57,17 @@ Map<String, dynamic> _$UpdateCategoryRequestToJson(
     <String, dynamic>{
       'title': instance.title,
     };
+
+CategoryHashResponse _$CategoryHashResponseFromJson(
+        Map<String, dynamic> json) =>
+    CategoryHashResponse(
+      categoryId: json['categoryId'] as String?,
+      hash: json['hash'] as String,
+    );
+
+Map<String, dynamic> _$CategoryHashResponseToJson(
+        CategoryHashResponse instance) =>
+    <String, dynamic>{
+      'categoryId': instance.categoryId,
+      'hash': instance.hash,
+    };

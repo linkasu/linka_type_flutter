@@ -51,3 +51,20 @@ class UpdateCategoryRequest {
       _$UpdateCategoryRequestFromJson(json);
   Map<String, dynamic> toJson() => _$UpdateCategoryRequestToJson(this);
 }
+
+@JsonSerializable()
+class CategoryHashResponse {
+  @JsonKey(name: 'categoryId')
+  final String? categoryId;
+  @JsonKey(name: 'hash')
+  final String hash;
+
+  CategoryHashResponse({
+    this.categoryId,
+    required this.hash,
+  });
+
+  factory CategoryHashResponse.fromJson(Map<String, dynamic> json) =>
+      _$CategoryHashResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$CategoryHashResponseToJson(this);
+}

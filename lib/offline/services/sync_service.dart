@@ -2,7 +2,6 @@ import '../../api/services/data_service.dart';
 import '../../api/models/statement.dart';
 import '../../api/models/category.dart';
 import '../models/offline_data.dart';
-import '../models/sync_state.dart';
 import 'json_storage_service.dart';
 
 /// Сервис для интеллектуальной синхронизации данных
@@ -62,12 +61,17 @@ class SyncService {
       final syncedStatements =
           await _syncStatements(currentData.statements, lastSyncTime);
 
+      // Проверяем, были ли изменения
+      final hasChanges =
+          !_areListsEqual(currentData.categories, syncedCategories) ||
+              !_areListsEqual(currentData.statements, syncedStatements);
+
       // Создаем обновленные данные
       final updatedData = OfflineData(
         categories: syncedCategories,
         statements: syncedStatements,
         lastUpdated: DateTime.now(),
-        version: currentData.version + 1,
+        version: hasChanges ? currentData.version + 1 : currentData.version,
       );
 
       await _storageService.saveOfflineData(updatedData);
@@ -166,6 +170,15 @@ class SyncService {
     final timeSinceLastSync = DateTime.now().difference(lastSyncTime);
     // Синхронизируем не чаще чем раз в минуту
     return timeSinceLastSync.inMinutes >= 1;
+  }
+
+  /// Проверяет, равны ли два списка
+  bool _areListsEqual<T>(List<T> list1, List<T> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
   }
 
   /// Получает статистику синхронизации

@@ -31,8 +31,6 @@ class JsonStorageService {
 
       final jsonString = jsonEncode(data.toJson());
       await file.writeAsString(jsonString);
-
-      print('JsonStorageService: Offline data saved successfully');
     } catch (e) {
       print('JsonStorageService: Error saving offline data: $e');
       rethrow;
@@ -46,7 +44,6 @@ class JsonStorageService {
       final file = File('${directory.path}/$_dataFileName');
 
       if (!await file.exists()) {
-        print('JsonStorageService: Offline data file does not exist');
         return null;
       }
 
@@ -54,8 +51,6 @@ class JsonStorageService {
       final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
 
       final data = OfflineData.fromJson(jsonData);
-      print(
-          'JsonStorageService: Offline data loaded successfully, version: ${data.version}');
       return data;
     } catch (e) {
       print('JsonStorageService: Error loading offline data: $e');
@@ -72,9 +67,6 @@ class JsonStorageService {
       final jsonList = operations.map((op) => op.toJson()).toList();
       final jsonString = jsonEncode(jsonList);
       await file.writeAsString(jsonString);
-
-      print(
-          'JsonStorageService: ${operations.length} offline operations saved');
     } catch (e) {
       print('JsonStorageService: Error saving offline operations: $e');
       rethrow;
@@ -88,7 +80,6 @@ class JsonStorageService {
       final file = File('${directory.path}/$_operationsFileName');
 
       if (!await file.exists()) {
-        print('JsonStorageService: Offline operations file does not exist');
         return [];
       }
 
@@ -100,8 +91,6 @@ class JsonStorageService {
               (json) => OfflineOperation.fromJson(json as Map<String, dynamic>))
           .toList();
 
-      print(
-          'JsonStorageService: ${operations.length} offline operations loaded');
       return operations;
     } catch (e) {
       print('JsonStorageService: Error loading offline operations: $e');
@@ -150,8 +139,6 @@ class JsonStorageService {
 
       final jsonString = jsonEncode(syncState.toJson());
       await file.writeAsString(jsonString);
-
-      print('JsonStorageService: Sync state saved: ${syncState.status}');
     } catch (e) {
       print('JsonStorageService: Error saving sync state: $e');
       rethrow;
@@ -165,7 +152,6 @@ class JsonStorageService {
       final file = File('${directory.path}/$_syncStateFileName');
 
       if (!await file.exists()) {
-        print('JsonStorageService: Sync state file does not exist');
         return null;
       }
 
@@ -173,7 +159,6 @@ class JsonStorageService {
       final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
 
       final syncState = SyncState.fromJson(jsonData);
-      print('JsonStorageService: Sync state loaded: ${syncState.status}');
       return syncState;
     } catch (e) {
       print('JsonStorageService: Error loading sync state: $e');
@@ -193,8 +178,6 @@ class JsonStorageService {
       if (await dataFile.exists()) await dataFile.delete();
       if (await operationsFile.exists()) await operationsFile.delete();
       if (await syncStateFile.exists()) await syncStateFile.delete();
-
-      print('JsonStorageService: All offline data cleared');
     } catch (e) {
       print('JsonStorageService: Error clearing offline data: $e');
       rethrow;
@@ -221,7 +204,6 @@ class JsonStorageService {
 
       return totalSize;
     } catch (e) {
-      print('JsonStorageService: Error getting storage size: $e');
       return 0;
     }
   }

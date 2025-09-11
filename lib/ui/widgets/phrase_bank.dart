@@ -19,6 +19,7 @@ class PhraseBank extends StatefulWidget {
   final Category? selectedCategory;
   final Function(Category?) onCategorySelected;
   final Function(List<Statement>, String)? onBulkEditStatements;
+  final Function(List<String>, String)? onBulkDownloadToCache;
 
   const PhraseBank({
     super.key,
@@ -34,6 +35,7 @@ class PhraseBank extends StatefulWidget {
     this.selectedCategory,
     required this.onCategorySelected,
     this.onBulkEditStatements,
+    this.onBulkDownloadToCache,
   });
 
   @override
@@ -120,6 +122,11 @@ class _PhraseBankState extends State<PhraseBank> {
                     tooltip: 'Добавить категорию',
                   )
                 else ...[
+                  IconButton(
+                    icon: const Icon(Icons.download),
+                    onPressed: () => _showBulkDownloadDialog(context),
+                    tooltip: 'Скачать все в кеш',
+                  ),
                   IconButton(
                     icon: const Icon(Icons.edit_note),
                     onPressed: _showBulkEditDialog,
@@ -417,6 +424,35 @@ class _PhraseBankState extends State<PhraseBank> {
       ),
     );
   }
+
+  void _showBulkDownloadDialog(BuildContext context) {
+    final statements = _getSortedStatements()
+        .where((s) => s.categoryId == _selectedCategory!.id)
+        .toList();
+
+    if (statements.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('В категории нет фраз для скачивания')),
+      );
+      return;
+    }
+
+    final phrases = statements.map((s) => s.title).toList();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _BulkDownloadDialog(
+        phrases: phrases,
+        categoryName: _selectedCategory!.title,
+        onDownload: () {
+          Navigator.of(context).pop();
+          widget.onBulkDownloadToCache?.call(phrases,
+              'current'); // Передаем маркер для использования текущего голоса
+        },
+      ),
+    );
+  }
 }
 
 class _BulkEditDialog extends StatefulWidget {
@@ -474,6 +510,47 @@ class _BulkEditDialogState extends State<_BulkEditDialog> {
         ElevatedButton(
           onPressed: () => widget.onSave(_controller.text),
           child: const Text('Сохранить'),
+        ),
+      ],
+    );
+  }
+}
+
+class _BulkDownloadDialog extends StatelessWidget {
+  final List<String> phrases;
+  final String categoryName;
+  final VoidCallback onDownload;
+
+  const _BulkDownloadDialog({
+    required this.phrases,
+    required this.categoryName,
+    required this.onDownload,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Скачать фразы в кеш'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Категория: $categoryName'),
+          const SizedBox(height: 8),
+          Text('Количество фраз: ${phrases.length}'),
+          const SizedBox(height: 16),
+          const Text(
+              'Будет использован текущий выбранный голос из настроек TTS.'),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Отмена'),
+        ),
+        ElevatedButton(
+          onPressed: onDownload,
+          child: const Text('Скачать'),
         ),
       ],
     );

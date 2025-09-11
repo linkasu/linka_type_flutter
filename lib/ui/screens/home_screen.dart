@@ -5,7 +5,6 @@ import '../../services/statement_service.dart';
 import '../../services/data_refresh_service.dart';
 import '../../services/data_manager.dart';
 import '../../api/api.dart';
-import '../../offline/providers/sync_provider.dart';
 import '../../offline/models/sync_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/text_input_block.dart';
@@ -524,6 +523,41 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _bulkDownloadToCache(List<String> phrases, String voice) async {
+    if (!mounted) return;
+
+    // Получаем текущий голос из настроек TTS, если передан маркер 'current'
+    String actualVoice = voice;
+    if (voice == 'current') {
+      final currentVoiceData = await _ttsService.getSelectedVoice();
+      actualVoice = currentVoiceData.voiceURI;
+    }
+
+    // Создаем прогресс нотифаер для отслеживания прогресса
+    final progressNotifier = ValueNotifier<(int, int)>((0, phrases.length));
+
+    // Показываем диалог прогресса
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _BulkDownloadProgressDialog(
+        totalPhrases: phrases.length,
+        progressNotifier: progressNotifier,
+        onDownload: () async {
+          await _ttsService.downloadPhrasesToCache(
+            phrases,
+            actualVoice,
+            (current, total) {
+              if (mounted) {
+                progressNotifier.value = (current, total);
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -580,6 +614,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 selectedCategory: _selectedCategory,
                                 onCategorySelected: _onCategorySelected,
                                 onBulkEditStatements: _bulkEditStatements,
+                                onBulkDownloadToCache: _bulkDownloadToCache,
                               ),
                             ),
                           ),
@@ -605,6 +640,112 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _refreshService.dispose();
     _phraseBankFocus.dispose();
+    super.dispose();
+  }
+}
+
+class _BulkDownloadProgressDialog extends StatefulWidget {
+  final int totalPhrases;
+  final ValueNotifier<(int, int)> progressNotifier;
+  final Future<void> Function() onDownload;
+
+  const _BulkDownloadProgressDialog({
+    required this.totalPhrases,
+    required this.progressNotifier,
+    required this.onDownload,
+  });
+
+  @override
+  State<_BulkDownloadProgressDialog> createState() =>
+      _BulkDownloadProgressDialogState();
+}
+
+class _BulkDownloadProgressDialogState
+    extends State<_BulkDownloadProgressDialog> {
+  bool _isDownloading = false;
+  bool _isCompleted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startDownload();
+  }
+
+  Future<void> _startDownload() async {
+    setState(() {
+      _isDownloading = true;
+    });
+
+    try {
+      await widget.onDownload();
+      setState(() {
+        _isCompleted = true;
+        _isDownloading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isDownloading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка при скачивании: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Скачивание в кеш'),
+      content: ValueListenableBuilder<(int, int)>(
+        valueListenable: widget.progressNotifier,
+        builder: (context, progress, child) {
+          final (current, total) = progress;
+          final progressValue = total > 0 ? current / total : 0.0;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LinearProgressIndicator(
+                value: _isCompleted ? 1.0 : progressValue,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _isCompleted
+                    ? 'Скачивание завершено'
+                    : 'Скачивание: $current из $total фраз',
+                textAlign: TextAlign.center,
+              ),
+              if (_isCompleted) ...[
+                const SizedBox(height: 16),
+                const Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 48,
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+      actions: [
+        if (_isCompleted)
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Готово'),
+          )
+        else if (!_isDownloading)
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Отмена'),
+          ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
     super.dispose();
   }
 }

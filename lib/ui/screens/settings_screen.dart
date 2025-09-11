@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import '../../services/tts_service.dart';
+import '../../services/tts_cache_service.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shortcuts_dialog.dart';
@@ -33,13 +34,20 @@ class _SettingsScreenState extends State<SettingsScreen>
   String _ttsStatus = 'Готов';
   String? _userEmail;
 
+  // Cache settings
+  bool _cacheEnabled = true;
+  double _cacheSizeLimitMB = 2048; // 2GB default
+  double _currentCacheSizeMB = 0;
+  int _cacheFileCount = 0;
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _loadSettings();
     _setupTTSEvents();
     _loadUserInfo();
+    _loadCacheSettings();
   }
 
   @override
@@ -55,6 +63,22 @@ class _SettingsScreenState extends State<SettingsScreen>
         _userEmail = email;
       });
     } catch (e) {}
+  }
+
+  Future<void> _loadCacheSettings() async {
+    try {
+      final cacheService = TTSCacheService.instance;
+      final cacheInfo = await cacheService.getCacheInfo();
+
+      setState(() {
+        _cacheEnabled = cacheInfo.enabled;
+        _cacheSizeLimitMB = cacheInfo.sizeLimitMB;
+        _currentCacheSizeMB = cacheInfo.sizeMB;
+        _cacheFileCount = cacheInfo.fileCount;
+      });
+    } catch (e) {
+      // Игнорируем ошибки загрузки настроек кеша
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -125,6 +149,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           tabs: const [
             Tab(icon: Icon(Icons.volume_up), text: 'TTS'),
             Tab(icon: Icon(Icons.account_circle), text: 'Аккаунт'),
+            Tab(icon: Icon(Icons.cached), text: 'Кеш'),
             Tab(icon: Icon(Icons.info), text: 'Информация'),
           ],
         ),
@@ -133,7 +158,12 @@ class _SettingsScreenState extends State<SettingsScreen>
           ? const Center(child: CircularProgressIndicator())
           : TabBarView(
               controller: _tabController,
-              children: [_buildTTSTab(), _buildAccountTab(), _buildInfoTab()],
+              children: [
+                _buildTTSTab(),
+                _buildAccountTab(),
+                _buildCacheTab(),
+                _buildInfoTab()
+              ],
             ),
     );
   }
@@ -505,6 +535,222 @@ class _SettingsScreenState extends State<SettingsScreen>
                     subtitle: const Text('Завершить текущую сессию'),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: _logout,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCacheTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.cached,
+                        color: AppTheme.primaryColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Кеширование TTS',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            Text(
+                              'Файлы: $_cacheFileCount, Размер: ${_currentCacheSizeMB.toStringAsFixed(1)} МБ',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Включение/отключение кеширования
+                  SwitchListTile(
+                    title: const Text('Включить кеширование'),
+                    subtitle: const Text(
+                        'Сохранять TTS файлы для повторного использования'),
+                    value: _cacheEnabled,
+                    onChanged: (value) async {
+                      final cacheService = TTSCacheService.instance;
+                      await cacheService.setCacheEnabled(value);
+                      setState(() {
+                        _cacheEnabled = value;
+                      });
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              value
+                                  ? 'Кеширование включено'
+                                  : 'Кеширование отключено',
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Прогресс-бар использования кеша
+                  Text(
+                    'Использование кеша',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(
+                    value: _cacheSizeLimitMB > 0
+                        ? _currentCacheSizeMB / _cacheSizeLimitMB
+                        : 0,
+                    backgroundColor: Colors.grey.shade300,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      _currentCacheSizeMB >= _cacheSizeLimitMB * 0.9
+                          ? Colors.red
+                          : AppTheme.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${_currentCacheSizeMB.toStringAsFixed(1)} МБ из ${_cacheSizeLimitMB.toStringAsFixed(0)} МБ',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Настройка размера кеша
+                  Text(
+                    'Максимальный размер кеша',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          value: _cacheSizeLimitMB,
+                          min: 100, // Минимум 100 МБ
+                          max: 10000, // Максимум 10 ГБ
+                          divisions: 99,
+                          onChanged: _cacheEnabled
+                              ? (value) async {
+                                  final cacheService = TTSCacheService.instance;
+                                  await cacheService.setCacheSizeLimitMB(value);
+                                  setState(() {
+                                    _cacheSizeLimitMB = value;
+                                  });
+                                  await _loadCacheSettings(); // Обновляем информацию
+                                }
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        '${_cacheSizeLimitMB.toStringAsFixed(0)} МБ',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: _cacheEnabled ? null : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Управление кешем
+                  Text(
+                    'Управление кешем',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Очистить кеш?'),
+                                content: const Text(
+                                  'Все сохраненные TTS файлы будут удалены. '
+                                  'При следующем использовании они будут загружены заново.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                    child: const Text('Отмена'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                    child: const Text('Очистить'),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirmed == true) {
+                              final cacheService = TTSCacheService.instance;
+                              await cacheService.clearCache();
+                              await _loadCacheSettings();
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Кеш очищен'),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.clear),
+                          label: const Text('Очистить кеш'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          await _loadCacheSettings();
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Информация обновлена'),
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Обновить'),
+                      ),
+                    ],
                   ),
                 ],
               ),

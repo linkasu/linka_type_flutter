@@ -7,6 +7,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'tts_cache_service.dart';
 
 class YandexVoice {
   final String voiceURI;
@@ -165,17 +166,50 @@ class TTSService {
     try {
       _eventController.add('start');
 
+      final voice = _currentVoice?.voiceURI ?? 'zahar';
+      final cacheService = TTSCacheService.instance;
+
+      // Проверяем кеш только если не скачиваем
+      if (!download && await cacheService.getCacheEnabled()) {
+        final cacheKey = cacheService.generateCacheKey(text, voice);
+        final cachedFile = await cacheService.getCachedFile(cacheKey);
+
+        if (cachedFile != null) {
+          // Воспроизводим из кеша
+          try {
+            await _audioPlayer?.play(DeviceFileSource(cachedFile.path));
+
+            // Ждем окончания воспроизведения
+            _audioPlayer?.onPlayerComplete.listen((_) {
+              _eventController.add('end');
+            });
+            return;
+          } catch (e) {
+            _lastError = 'Ошибка воспроизведения из кеша: $e';
+            _eventController.add('error: $e');
+            // Продолжаем с загрузкой от сервера
+          }
+        }
+      }
+
+      // Загружаем от сервера
       final response = await http.post(
         Uri.parse('https://tts.linka.su/tts'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'text': text,
-          'voice': _currentVoice?.voiceURI ?? 'zahar',
+          'voice': voice,
         }),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final bytes = response.bodyBytes;
+
+        // Сохраняем в кеш если включено кеширование
+        if (!download && await cacheService.getCacheEnabled()) {
+          final cacheKey = cacheService.generateCacheKey(text, voice);
+          await cacheService.saveToCache(cacheKey, bytes);
+        }
 
         if (download) {
           await _downloadAudio(bytes, text);
@@ -524,6 +558,46 @@ class TTSService {
           .toList();
     } catch (e) {
       return [];
+    }
+  }
+
+  /// Скачивает все фразы в кеш с прогрессом
+  Future<void> downloadPhrasesToCache(
+    List<String> phrases,
+    String voice,
+    Function(int current, int total) onProgress,
+  ) async {
+    final cacheService = TTSCacheService.instance;
+
+    for (int i = 0; i < phrases.length; i++) {
+      final text = phrases[i];
+      final cacheKey = cacheService.generateCacheKey(text, voice);
+
+      // Проверяем, есть ли уже в кеше
+      if (await cacheService.isCached(cacheKey)) {
+        onProgress(i + 1, phrases.length);
+        continue;
+      }
+
+      try {
+        // Скачиваем и сохраняем в кеш
+        final response = await http.post(
+          Uri.parse('https://tts.linka.su/tts'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'text': text,
+            'voice': voice,
+          }),
+        );
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          await cacheService.saveToCache(cacheKey, response.bodyBytes);
+        }
+      } catch (e) {
+        // Игнорируем ошибки отдельных фраз
+      }
+
+      onProgress(i + 1, phrases.length);
     }
   }
 

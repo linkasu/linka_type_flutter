@@ -44,7 +44,7 @@ class ShortcutController {
     _showSpotlightCallback = callback;
   }
 
-  void setCloseSpotlightCallback(VoidCallback callback) {
+  void setCloseSpotlightCallback(VoidCallback? callback) {
     _closeSpotlightCallback = callback;
   }
 
@@ -98,6 +98,7 @@ class ShortcutController {
   void _closeSpotlight() {
     if (_closeSpotlightCallback != null) {
       _closeSpotlightCallback!();
+      _closeSpotlightCallback = null;
     }
   }
 

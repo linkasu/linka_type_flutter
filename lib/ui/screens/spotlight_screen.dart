@@ -46,7 +46,8 @@ class _SpotlightScreenState extends State<SpotlightScreen> {
   @override
   void dispose() {
     _textController.dispose();
-    _shortcutController.setCloseSpotlightCallback(() {});
+    // Сбрасываем callback при закрытии экрана
+    _shortcutController.setCloseSpotlightCallback(null);
     super.dispose();
   }
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../theme/app_theme.dart';
 import '../screens/spotlight_screen.dart';
 import '../../services/shortcut_controller.dart';
+import 'predictor_widget.dart';
 
 class TextInputBlock extends StatefulWidget {
   final Function(String) onSayText;
@@ -22,6 +24,8 @@ class _TextInputBlockState extends State<TextInputBlock> {
   final FocusNode _focusNode = FocusNode();
   final ShortcutController _shortcutController = ShortcutController();
   bool _hasText = false;
+  List<String> _currentPredictions = [];
+  int _currentPos = 0;
 
   @override
   void initState() {
@@ -35,6 +39,9 @@ class _TextInputBlockState extends State<TextInputBlock> {
     });
     _shortcutController.setShowSpotlightCallback(() {
       _showSpotlight();
+    });
+    _shortcutController.setPredictionCallback((index) {
+      _onPredictionShortcut(index);
     });
   }
 
@@ -64,6 +71,66 @@ class _TextInputBlockState extends State<TextInputBlock> {
     );
   }
 
+  void _onPredictionSelected(String prediction) {
+    final currentText = _textController.text;
+    final selection = _textController.selection;
+
+    // Вычисляем позицию для вставки с учетом pos
+    final insertPosition =
+        _currentPos < 0 ? selection.start + _currentPos : selection.start;
+    final deleteStart = insertPosition;
+    final deleteEnd = selection.start;
+
+    // Формируем текст для вставки
+    String textToInsert = prediction;
+    if (_currentPos == 1) {
+      textToInsert = ' $prediction';
+    } else {
+      textToInsert = '$prediction ';
+    }
+
+    // Вставляем предсказание, удаляя нужное количество символов
+    final newText = currentText.replaceRange(
+      deleteStart,
+      deleteEnd,
+      textToInsert,
+    );
+
+    _textController.text = newText;
+    _textController.selection = TextSelection.collapsed(
+      offset: insertPosition + textToInsert.length,
+    );
+  }
+
+  void _onPredictionShortcut(int index) {
+    if (index < _currentPredictions.length) {
+      _onPredictionSelected(_currentPredictions[index]);
+    }
+  }
+
+  void _onPredictionsUpdated(List<String> predictions) {
+    setState(() {
+      _currentPredictions = predictions;
+    });
+  }
+
+  void _onPosUpdated(int pos) {
+    setState(() {
+      _currentPos = pos;
+    });
+  }
+
+  String _getHintText() {
+    if (kIsWeb ||
+        defaultTargetPlatform == TargetPlatform.linux ||
+        defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return 'Например: Привет, как дела? (Enter для озвучивания, Ctrl+I для фокуса, Ctrl+1-5 для выбора подсказок)';
+    } else {
+      return 'Например: Привет, как дела? (Enter для озвучивания)';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -72,6 +139,20 @@ class _TextInputBlockState extends State<TextInputBlock> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Предиктор только на десктопах
+            if (kIsWeb ||
+                defaultTargetPlatform == TargetPlatform.linux ||
+                defaultTargetPlatform == TargetPlatform.windows ||
+                defaultTargetPlatform == TargetPlatform.macOS) ...[
+              PredictorWidget(
+                text: _textController.text,
+                onPredictionSelected: _onPredictionSelected,
+                onPredictionsUpdated: _onPredictionsUpdated,
+                onPosUpdated: _onPosUpdated,
+                register: null, // Можно настроить в зависимости от контекста
+              ),
+              const SizedBox(height: 16),
+            ],
             TextField(
               controller: _textController,
               focusNode: _focusNode,
@@ -84,11 +165,10 @@ class _TextInputBlockState extends State<TextInputBlock> {
                   _focusNode.requestFocus();
                 }
               },
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Введите текст для озвучивания',
-                border: OutlineInputBorder(),
-                hintText:
-                    'Например: Привет, как дела? (Enter для озвучивания, Ctrl+I для фокуса)',
+                border: const OutlineInputBorder(),
+                hintText: _getHintText(),
               ),
             ),
             const SizedBox(height: 16),

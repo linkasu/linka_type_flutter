@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 class ShortcutInfo {
   final String description;
@@ -23,6 +24,7 @@ class ShortcutController {
   VoidCallback? _sayTextCallback;
   VoidCallback? _showSpotlightCallback;
   VoidCallback? _closeSpotlightCallback;
+  Function(int)? _predictionCallback;
 
   void registerShortcut(String key, ShortcutInfo shortcut) {
     _shortcuts[key] = shortcut;
@@ -48,8 +50,20 @@ class ShortcutController {
     _closeSpotlightCallback = callback;
   }
 
+  void setPredictionCallback(Function(int)? callback) {
+    _predictionCallback = callback;
+  }
+
   KeyEventResult handleKeyEvent(KeyEvent event) {
     if (event is! KeyDownEvent) {
+      return KeyEventResult.ignored;
+    }
+
+    // Горячие клавиши работают только на десктопах
+    if (!kIsWeb &&
+        defaultTargetPlatform != TargetPlatform.linux &&
+        defaultTargetPlatform != TargetPlatform.windows &&
+        defaultTargetPlatform != TargetPlatform.macOS) {
       return KeyEventResult.ignored;
     }
 
@@ -70,6 +84,13 @@ class ShortcutController {
           return KeyEventResult.handled;
         case LogicalKeyboardKey.enter:
           _sayText();
+          return KeyEventResult.handled;
+        case LogicalKeyboardKey.digit1:
+        case LogicalKeyboardKey.digit2:
+        case LogicalKeyboardKey.digit3:
+        case LogicalKeyboardKey.digit4:
+        case LogicalKeyboardKey.digit5:
+          _handlePredictionShortcut(event.logicalKey);
           return KeyEventResult.handled;
       }
     }
@@ -102,6 +123,32 @@ class ShortcutController {
     }
   }
 
+  void _handlePredictionShortcut(LogicalKeyboardKey key) {
+    if (_predictionCallback != null) {
+      int index = 0;
+      switch (key) {
+        case LogicalKeyboardKey.digit1:
+          index = 0;
+          break;
+        case LogicalKeyboardKey.digit2:
+          index = 1;
+          break;
+        case LogicalKeyboardKey.digit3:
+          index = 2;
+          break;
+        case LogicalKeyboardKey.digit4:
+          index = 3;
+          break;
+        case LogicalKeyboardKey.digit5:
+          index = 4;
+          break;
+        default:
+          return;
+      }
+      _predictionCallback!(index);
+    }
+  }
+
   List<ShortcutInfo> getAllShortcuts() {
     return _shortcuts.values.toList();
   }
@@ -112,5 +159,6 @@ class ShortcutController {
     _sayTextCallback = null;
     _showSpotlightCallback = null;
     _closeSpotlightCallback = null;
+    _predictionCallback = null;
   }
 }

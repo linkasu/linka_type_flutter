@@ -32,13 +32,13 @@ class _SpotlightScreenState extends State<SpotlightScreen> {
       Navigator.of(context).pop();
     });
 
-    // Автоматически включаем редактирование на десктопах если поле пустое
+    // Автоматически включаем редактирование на десктопах при переходе в режим показа
     final isDesktop = kIsWeb ||
         (defaultTargetPlatform == TargetPlatform.windows) ||
         (defaultTargetPlatform == TargetPlatform.macOS) ||
         (defaultTargetPlatform == TargetPlatform.linux);
 
-    if (isDesktop && widget.initialText.isEmpty) {
+    if (isDesktop) {
       _isEditing = true;
     }
   }

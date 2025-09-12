@@ -75,17 +75,20 @@ class _TextInputBlockState extends State<TextInputBlock> {
             TextField(
               controller: _textController,
               focusNode: _focusNode,
-              maxLines: 3,
+              maxLines: 1,
+              textInputAction: TextInputAction.done,
               onSubmitted: (value) {
                 if (_hasText) {
                   _sayText();
+                  // Оставляем фокус в поле после произнесения
+                  _focusNode.requestFocus();
                 }
               },
               decoration: const InputDecoration(
                 labelText: 'Введите текст для озвучивания',
                 border: OutlineInputBorder(),
                 hintText:
-                    'Например: Привет, как дела? (Ctrl+Enter для озвучивания, Ctrl+I для фокуса)',
+                    'Например: Привет, как дела? (Enter для озвучивания, Ctrl+I для фокуса)',
               ),
             ),
             const SizedBox(height: 16),

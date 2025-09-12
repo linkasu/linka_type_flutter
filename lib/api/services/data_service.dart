@@ -1,6 +1,8 @@
 import '../models/category.dart';
 import '../models/statement.dart';
 import '../models/data_models.dart';
+import '../exceptions.dart';
+import '../../services/auth_error_handler.dart';
 import 'api_client.dart';
 
 class DataService {
@@ -14,6 +16,9 @@ class DataService {
       final statements =
           statementsJson.map((json) => Statement.fromJson(json)).toList();
       return statements;
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -23,6 +28,9 @@ class DataService {
     try {
       final response = await _apiClient.get('/statements/$id');
       return Statement.fromJson(response);
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -39,6 +47,9 @@ class DataService {
         body: request.toJson(),
       );
       return Statement.fromJson(response);
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -59,6 +70,9 @@ class DataService {
         body: request.toJson(),
       );
       return Statement.fromJson(response);
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -67,6 +81,9 @@ class DataService {
   Future<void> deleteStatement(String id) async {
     try {
       await _apiClient.delete('/statements/$id');
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -80,6 +97,9 @@ class DataService {
       final categories =
           categoriesJson.map((json) => Category.fromJson(json)).toList();
       return categories;
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -89,6 +109,9 @@ class DataService {
     try {
       final response = await _apiClient.get('/categories/$id');
       return Category.fromJson(response);
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -102,6 +125,9 @@ class DataService {
         body: request.toJson(),
       );
       return Category.fromJson(response);
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -115,6 +141,9 @@ class DataService {
         body: request.toJson(),
       );
       return Category.fromJson(response);
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -123,6 +152,9 @@ class DataService {
   Future<void> deleteCategory(String id) async {
     try {
       await _apiClient.delete('/categories/$id');
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }

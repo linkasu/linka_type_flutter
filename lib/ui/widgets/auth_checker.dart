@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../api/api.dart';
+import '../../api/exceptions.dart';
+import '../../services/auth_error_handler.dart';
 import '../screens/login_screen.dart';
 import '../screens/home_screen.dart';
 
@@ -27,6 +29,14 @@ class _AuthCheckerState extends State<AuthChecker> {
 
       setState(() {
         _isLoggedIn = isLoggedIn;
+        _isLoading = false;
+      });
+    } on AuthenticationException catch (e) {
+      print('AuthChecker: Authentication error: $e');
+      // Обрабатываем ошибку аутентификации
+      AuthErrorHandler.handleAuthError(e);
+      setState(() {
+        _isLoggedIn = false;
         _isLoading = false;
       });
     } catch (e) {

@@ -6,6 +6,7 @@ import 'l10n/app_localizations.dart';
 import 'ui/ui.dart';
 import 'services/shortcut_controller.dart';
 import 'services/data_manager.dart';
+import 'services/auth_error_handler.dart';
 import 'api/services/data_service.dart';
 import 'offline/providers/sync_provider.dart';
 
@@ -49,6 +50,7 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           title: 'LINKa напиши',
           theme: AppTheme.lightTheme,
+          navigatorKey: AuthErrorHandler.navigatorKey,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

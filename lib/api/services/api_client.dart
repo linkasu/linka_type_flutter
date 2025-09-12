@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../utils/token_manager.dart';
 import '../exceptions.dart';
 import '../models/auth_models.dart';
+import '../../services/auth_error_handler.dart';
 import 'dart:developer' as developer;
 
 class ApiClient {
@@ -110,6 +111,9 @@ class ApiClient {
 
           print('Failed to refresh token: $e');
 
+          // Обрабатываем ошибку аутентификации
+          AuthErrorHandler.handleAuthError(e);
+
           rethrow;
         }
       }
@@ -173,6 +177,9 @@ class ApiClient {
       }
     } catch (e) {
       developer.log('Ошибка при автоматическом обновлении токена: $e');
+
+      // Обрабатываем ошибку аутентификации
+      AuthErrorHandler.handleAuthError(e);
 
       rethrow;
     }

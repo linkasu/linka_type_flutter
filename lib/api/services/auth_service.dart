@@ -1,6 +1,7 @@
 import '../models/auth_models.dart';
 import '../utils/token_manager.dart';
 import '../exceptions.dart';
+import '../../services/auth_error_handler.dart';
 import 'api_client.dart';
 
 class AuthService {
@@ -173,9 +174,14 @@ class AuthService {
       return loginResponse;
     } catch (e) {
       if (e is AuthenticationException) {
+        // Обрабатываем ошибку аутентификации
+        AuthErrorHandler.handleAuthError(e);
         rethrow;
       }
-      throw AuthenticationException('Token refresh failed: ${e.toString()}');
+      final authException =
+          AuthenticationException('Token refresh failed: ${e.toString()}');
+      AuthErrorHandler.handleAuthError(authException);
+      throw authException;
     }
   }
 
@@ -183,6 +189,9 @@ class AuthService {
     try {
       final response = await _apiClient.get('/profile');
       return ProfileResponse.fromJson(response);
+    } on AuthenticationException catch (e) {
+      AuthErrorHandler.handleAuthError(e);
+      rethrow;
     } catch (e) {
       rethrow;
     }

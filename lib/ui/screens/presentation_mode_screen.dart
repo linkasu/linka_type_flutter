@@ -48,6 +48,7 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
   int _currentIndex = 0;
   bool _isPlaying = false;
   bool _isLoading = true;
+  late DateTime _sessionStartTime;
   
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
@@ -55,6 +56,7 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
   @override
   void initState() {
     super.initState();
+    _sessionStartTime = DateTime.now();
     _setupAnimations();
     _filterStatements();
     _trackScreenView();
@@ -90,10 +92,10 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
   }
 
   Future<void> _trackScreenView() async {
-    await _analyticsManager.trackEvent(AnalyticsEvents.screenView, data: {
-      'screen_name': 'presentation_mode_screen',
+    await _analyticsManager.trackEvent(AnalyticsEvents.presentationModeStarted, data: {
       'category_id': widget.category.id,
       'category_title': widget.category.title,
+      'phrases_count': _statements.length,
       'timestamp': DateTime.now().toIso8601String(),
     });
   }
@@ -125,12 +127,19 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
       });
       _slideController.forward(from: 0.0);
       
-      await _analyticsManager.trackEvent(AnalyticsEvents.buttonClicked, data: {
-        'button_name': 'previous_phrase',
-        'screen': 'presentation_mode_screen',
-        'current_index': _currentIndex,
+      await _analyticsManager.trackEvent(AnalyticsEvents.presentationNavigation, data: {
+        'direction': 'previous',
+        'phrase_index': _currentIndex,
+        'statement_id': _statements[_currentIndex].id,
+        'category_id': widget.category.id,
+        'timestamp': DateTime.now().toIso8601String(),
       });
     }
+  }
+
+  Future<void> _navigateToPreviousWithShortcut() async {
+    await _trackShortcutUsage('Z');
+    await _navigateToPrevious();
   }
 
   Future<void> _navigateToNext() async {
@@ -140,12 +149,38 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
       });
       _slideController.forward(from: 0.0);
       
-      await _analyticsManager.trackEvent(AnalyticsEvents.buttonClicked, data: {
-        'button_name': 'next_phrase',
-        'screen': 'presentation_mode_screen',
-        'current_index': _currentIndex,
+      await _analyticsManager.trackEvent(AnalyticsEvents.presentationNavigation, data: {
+        'direction': 'next',
+        'phrase_index': _currentIndex,
+        'statement_id': _statements[_currentIndex].id,
+        'category_id': widget.category.id,
+        'timestamp': DateTime.now().toIso8601String(),
       });
     }
+  }
+
+  Future<void> _navigateToNextWithShortcut() async {
+    await _trackShortcutUsage('M');
+    await _navigateToNext();
+  }
+
+  Future<void> _togglePlaybackWithShortcut() async {
+    await _trackShortcutUsage('Space');
+    await _togglePlayback();
+  }
+
+  Future<void> _exitWithShortcut() async {
+    await _trackShortcutUsage('Esc');
+    await _exitPresentationMode();
+  }
+
+  Future<void> _trackShortcutUsage(String key) async {
+    await _analyticsManager.trackEvent(AnalyticsEvents.presentationKeyboardShortcut, data: {
+      'key': key,
+      'phrase_index': _currentIndex,
+      'category_id': widget.category.id,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
   }
 
   Future<void> _togglePlayback() async {
@@ -158,9 +193,12 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
         _isPlaying = false;
       });
       
-      await _analyticsManager.trackEvent(AnalyticsEvents.ttsStopped, data: {
+      await _analyticsManager.trackEvent(AnalyticsEvents.presentationPhraseSkipped, data: {
         'statement_id': statement.id,
-        'source': 'presentation_mode',
+        'statement_title': statement.title,
+        'phrase_index': _currentIndex,
+        'category_id': widget.category.id,
+        'timestamp': DateTime.now().toIso8601String(),
       });
     } else {
       await _ttsService.say(statement.title);
@@ -168,10 +206,13 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
         _isPlaying = true;
       });
       
-      await _analyticsManager.trackEvent(AnalyticsEvents.ttsStarted, data: {
+      await _analyticsManager.trackEvent(AnalyticsEvents.presentationPhrasePlayed, data: {
         'statement_id': statement.id,
+        'statement_title': statement.title,
+        'phrase_index': _currentIndex,
         'text_length': statement.title.length,
-        'source': 'presentation_mode',
+        'category_id': widget.category.id,
+        'timestamp': DateTime.now().toIso8601String(),
       });
       
       // Автоматически останавливаем воспроизведение через некоторое время
@@ -190,18 +231,19 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
       await _ttsService.stop();
     }
     
-    await _analyticsManager.trackEvent(AnalyticsEvents.buttonClicked, data: {
-      'button_name': 'exit_presentation_mode',
-      'screen': 'presentation_mode_screen',
+    await _analyticsManager.trackEvent(AnalyticsEvents.presentationModeExited, data: {
+      'category_id': widget.category.id,
+      'category_title': widget.category.title,
       'session_duration': DateTime.now().difference(_sessionStartTime).inSeconds,
+      'phrases_viewed': _currentIndex + 1,
+      'total_phrases': _statements.length,
+      'timestamp': DateTime.now().toIso8601String(),
     });
     
     if (mounted) {
       Navigator.of(context).pop();
     }
   }
-
-  late final DateTime _sessionStartTime = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -217,16 +259,16 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
         child: Actions(
           actions: {
             _PreviousIntent: CallbackAction<_PreviousIntent>(
-              onInvoke: (_) => _navigateToPrevious(),
+              onInvoke: (_) => _navigateToPreviousWithShortcut(),
             ),
             _NextIntent: CallbackAction<_NextIntent>(
-              onInvoke: (_) => _navigateToNext(),
+              onInvoke: (_) => _navigateToNextWithShortcut(),
             ),
             _PlayPauseIntent: CallbackAction<_PlayPauseIntent>(
-              onInvoke: (_) => _togglePlayback(),
+              onInvoke: (_) => _togglePlaybackWithShortcut(),
             ),
             _ExitIntent: CallbackAction<_ExitIntent>(
-              onInvoke: (_) => _exitPresentationMode(),
+              onInvoke: (_) => _exitWithShortcut(),
             ),
           },
           child: Focus(

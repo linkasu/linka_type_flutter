@@ -79,6 +79,14 @@ class AnalyticsEvents {
   static const String ttsResumed = 'tts_resumed';
   static const String ttsError = 'tts_error';
 
+  // События режима выступления
+  static const String presentationModeStarted = 'presentation_mode_started';
+  static const String presentationModeExited = 'presentation_mode_exited';
+  static const String presentationPhrasePlayed = 'presentation_phrase_played';
+  static const String presentationPhraseSkipped = 'presentation_phrase_skipped';
+  static const String presentationNavigation = 'presentation_navigation';
+  static const String presentationKeyboardShortcut = 'presentation_keyboard_shortcut';
+
   // События уведомлений
   static const String notificationReceived = 'notification_received';
   static const String notificationClicked = 'notification_clicked';

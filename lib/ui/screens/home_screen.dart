@@ -14,6 +14,7 @@ import '../widgets/phrase_bank.dart';
 import '../widgets/crud_dialogs.dart';
 import '../widgets/notification_banner.dart';
 import 'settings_screen.dart';
+import 'presentation_mode_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -626,6 +627,26 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _startPresentationMode(Category category) async {
+    await _analyticsManager.trackEvent(AnalyticsEvents.buttonClicked, data: {
+      'button_name': 'start_presentation_mode',
+      'screen': 'home_screen',
+      'category_id': category.id,
+      'category_title': category.title,
+    });
+
+    if (mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PresentationModeScreen(
+            category: category,
+            statements: _statements,
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _bulkDownloadToCache(List<String> phrases, String voice) async {
     if (!mounted) return;
 
@@ -723,6 +744,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onCategorySelected: _onCategorySelected,
                                 onBulkEditStatements: _bulkEditStatements,
                                 onBulkDownloadToCache: _bulkDownloadToCache,
+                                onPresentationMode: _startPresentationMode,
                               ),
                             ),
                           ),

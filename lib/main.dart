@@ -56,10 +56,7 @@ class MyApp extends StatelessWidget {
         onKeyEvent: (event) {
           if (event is KeyDownEvent) {
             final shortcutController = ShortcutController();
-            final result = shortcutController.handleKeyEvent(event);
-            if (result == KeyEventResult.handled) {
-              return;
-            }
+            shortcutController.handleKeyEvent(event);
           }
         },
         child: MaterialApp(

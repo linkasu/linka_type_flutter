@@ -10,6 +10,7 @@ class ItemCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onPlay;
+  final VoidCallback? onPresentationMode;
 
   const ItemCard({
     super.key,
@@ -20,6 +21,7 @@ class ItemCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onPlay,
+    this.onPresentationMode,
   });
 
   @override

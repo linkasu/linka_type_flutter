@@ -11,6 +11,7 @@ export 'screens/spotlight_screen.dart';
 export 'screens/reset_password_screen.dart';
 export 'screens/reset_password_otp_screen.dart';
 export 'screens/reset_password_new_password_screen.dart';
+export 'screens/presentation_mode_screen.dart';
 
 // Widgets
 export 'widgets/auth_checker.dart';

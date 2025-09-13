@@ -20,6 +20,7 @@ class PhraseBank extends StatefulWidget {
   final Function(Category?) onCategorySelected;
   final Function(List<Statement>, String)? onBulkEditStatements;
   final Function(List<String>, String)? onBulkDownloadToCache;
+  final Function(Category)? onPresentationMode;
 
   const PhraseBank({
     super.key,
@@ -36,6 +37,7 @@ class PhraseBank extends StatefulWidget {
     required this.onCategorySelected,
     this.onBulkEditStatements,
     this.onBulkDownloadToCache,
+    this.onPresentationMode,
   });
 
   @override
@@ -122,6 +124,13 @@ class _PhraseBankState extends State<PhraseBank> {
                     tooltip: 'Добавить категорию',
                   )
                 else ...[
+                  // Кнопка режима выступления
+                  if (widget.onPresentationMode != null)
+                    IconButton(
+                      icon: const Icon(Icons.present_to_all),
+                      onPressed: () => widget.onPresentationMode!(_selectedCategory!),
+                      tooltip: 'Режим выступления',
+                    ),
                   IconButton(
                     icon: const Icon(Icons.download),
                     onPressed: () => _showBulkDownloadDialog(context),
@@ -232,9 +241,6 @@ class _PhraseBankState extends State<PhraseBank> {
     final statements = allStatements
         .where((s) => s.categoryId == _selectedCategory!.id)
         .toList();
-    
-    for (final statement in allStatements) {
-    }
 
     if (statements.isEmpty) {
       return const Center(

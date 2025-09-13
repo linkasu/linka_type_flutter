@@ -151,9 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
 
     // Обновляем UI в зависимости от состояния синхронизации
-    if (syncState.status == SyncStatus.offline) {
-      _showUpdateNotification('Работа в оффлайн режиме');
-    } else if (syncState.status == SyncStatus.synced &&
+    if (syncState.status == SyncStatus.synced &&
         syncState.hasPendingOperations) {
       _showUpdateNotification('Синхронизация завершена');
     } else if (syncState.hasError) {

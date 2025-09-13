@@ -14,6 +14,7 @@ class OfflineData {
   final List<Statement> statements;
 
   /// Время последнего обновления данных
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   final DateTime lastUpdated;
 
   /// Версия данных для оптимизации синхронизации
@@ -30,6 +31,15 @@ class OfflineData {
       _$OfflineDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$OfflineDataToJson(this);
+
+  /// Helper функции для безопасного парсинга DateTime
+  static DateTime _dateTimeFromJson(dynamic json) {
+    if (json == null) return DateTime.now();
+    if (json is String) return DateTime.parse(json);
+    return DateTime.now();
+  }
+
+  static String _dateTimeToJson(DateTime dateTime) => dateTime.toIso8601String();
 
   /// Создает пустой контейнер данных
   factory OfflineData.empty() => OfflineData(

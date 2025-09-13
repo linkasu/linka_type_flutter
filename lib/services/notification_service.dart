@@ -197,6 +197,8 @@ class NotificationService {
   }
 
   void showSyncError(String error) {
+    print('NotificationService: Показываем ошибку синхронизации: $error');
+    print('NotificationService: Stack trace: ${StackTrace.current}');
     showError(
       'Ошибка синхронизации',
       message: 'Не удалось синхронизировать данные: $error',

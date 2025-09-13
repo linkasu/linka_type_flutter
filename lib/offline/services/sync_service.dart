@@ -17,9 +17,11 @@ class SyncService {
     bool forceFullSync = false,
   }) async {
     try {
+      
       // Получаем текущие оффлайн данные
       final currentOfflineData =
           await _storageService.loadOfflineData() ?? OfflineData.empty();
+      
 
       if (forceFullSync || lastSyncTime == null) {
         return await _performFullSync();
@@ -34,6 +36,7 @@ class SyncService {
   /// Выполняет полную синхронизацию
   Future<OfflineData> _performFullSync() async {
     final categories = await _dataService.getCategories();
+    
     final statements = await _dataService.getStatements();
 
     final offlineData = OfflineData(
@@ -168,8 +171,8 @@ class SyncService {
     if (lastSyncTime == null) return true;
 
     final timeSinceLastSync = DateTime.now().difference(lastSyncTime);
-    // Синхронизируем не чаще чем раз в минуту
-    return timeSinceLastSync.inMinutes >= 1;
+    // Синхронизируем не чаще чем раз в 15 секунд (вместо 1 минуты)
+    return timeSinceLastSync.inSeconds >= 15;
   }
 
   /// Проверяет, равны ли два списка

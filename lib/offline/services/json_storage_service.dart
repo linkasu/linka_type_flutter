@@ -44,13 +44,16 @@ class JsonStorageService {
       final file = File('${directory.path}/$_dataFileName');
 
       if (!await file.exists()) {
+        print('JsonStorageService: Файл оффлайн данных не существует');
         return null;
       }
 
       final jsonString = await file.readAsString();
+      print('JsonStorageService: Загружено ${jsonString.length} символов из файла');
       final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
 
       final data = OfflineData.fromJson(jsonData);
+      print('JsonStorageService: Загружены оффлайн данные - категорий: ${data.categories.length}, фраз: ${data.statements.length}');
       return data;
     } catch (e) {
       print('JsonStorageService: Error loading offline data: $e');

@@ -83,6 +83,7 @@ class DataRefreshService {
       await _checkMonitoredCategory();
     } catch (e) {
       print('DataRefreshService: Error during refresh: $e');
+      print('DataRefreshService: Stack trace: ${StackTrace.current}');
       // Не показываем ошибки пользователю, так как это фоновая проверка
     } finally {
       _isRefreshing = false;

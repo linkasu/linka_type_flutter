@@ -7,17 +7,17 @@ part of 'statement.dart';
 // **************************************************************************
 
 Statement _$StatementFromJson(Map<String, dynamic> json) => Statement(
-      id: json['id'] as String,
-      title: json['text'] as String,
-      userId: json['userId'] as String,
-      categoryId: json['categoryId'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      id: Statement._stringFromJson(json['id']),
+      title: Statement._stringFromJson(json['title']),
+      userId: Statement._stringFromJson(json['userId']),
+      categoryId: Statement._stringFromJson(json['categoryId']),
+      createdAt: Statement._dateTimeFromJson(json['createdAt']),
+      updatedAt: Statement._dateTimeFromJson(json['updatedAt']),
     );
 
 Map<String, dynamic> _$StatementToJson(Statement instance) => <String, dynamic>{
       'id': instance.id,
-      'text': instance.title,
+      'title': instance.title,
       'userId': instance.userId,
       'categoryId': instance.categoryId,
       'createdAt': instance.createdAt.toIso8601String(),

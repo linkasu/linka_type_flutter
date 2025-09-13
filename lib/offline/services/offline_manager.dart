@@ -91,14 +91,15 @@ class OfflineManager {
     // Обновляем состояние синхронизации
     if (isOnline && wasOffline) {
       // Переход из оффлайн в онлайн
+      print('OfflineManager: Переход из оффлайн в онлайн - запуск принудительной синхронизации');
       _currentSyncState = _currentSyncState.copyWith(
         status: SyncStatus.syncing,
         isOnline: true,
       );
       _syncStateController.add(_currentSyncState);
 
-      // Запускаем синхронизацию
-      await _syncOnConnectionRestore();
+      // Запускаем принудительную синхронизацию
+      await forceSync();
     } else if (!isOnline && !wasOffline) {
       // Переход в оффлайн
       final pendingCount = await _operationService.getPendingOperationsCount();
@@ -133,7 +134,7 @@ class OfflineManager {
 
       // Интеллектуально синхронизируем данные с сервером
       final offlineData = await _storageService.loadOfflineData();
-      final syncedData = await _syncService.syncWithServer(
+      await _syncService.syncWithServer(
         lastSyncTime: offlineData?.lastUpdated,
       );
 
@@ -144,6 +145,9 @@ class OfflineManager {
 
       await _storageService.saveSyncState(_currentSyncState);
     } catch (e) {
+      print('OfflineManager: Ошибка синхронизации: $e');
+      print('OfflineManager: Stack trace: ${StackTrace.current}');
+      
       final pendingCount = await _operationService.getPendingOperationsCount();
       _currentSyncState = SyncState.error(
         message: e.toString(),
@@ -167,7 +171,6 @@ class OfflineManager {
         final syncedData = await _syncService.syncWithServer(
           lastSyncTime: offlineData?.lastUpdated,
         );
-
         return syncedData.categories;
       } catch (e) {
         // Fallback to offline data
@@ -190,7 +193,6 @@ class OfflineManager {
         final syncedData = await _syncService.syncWithServer(
           lastSyncTime: offlineData?.lastUpdated,
         );
-
         return syncedData.statements;
       } catch (e) {
         // Fallback to offline data
@@ -529,15 +531,20 @@ class OfflineManager {
   /// Принудительная синхронизация
   Future<void> forceSync() async {
     if (_isOfflineMode) {
+      print('OfflineManager: Принудительная синхронизация пропущена - режим оффлайн');
       return;
     }
 
+    print('OfflineManager: Запуск принудительной синхронизации');
     _currentSyncState = _currentSyncState.copyWith(status: SyncStatus.syncing);
     _syncStateController.add(_currentSyncState);
 
     try {
       await _syncOnConnectionRestore();
-    } catch (e) {}
+      print('OfflineManager: Принудительная синхронизация завершена успешно');
+    } catch (e) {
+      print('OfflineManager: Ошибка принудительной синхронизации: $e');
+    }
   }
 
   /// Очищает все оффлайн данные

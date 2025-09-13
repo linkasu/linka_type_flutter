@@ -190,9 +190,11 @@ class _PhraseBankState extends State<PhraseBank> {
             spacing: 12, // 1em отступы между карточками
             runSpacing: 12, // 1em отступы между рядами
             children: _getSortedCategories().map((category) {
-              final statementCount = widget.statements
+              final categoryStatements = widget.statements
                   .where((s) => s.categoryId == category.id)
-                  .length;
+                  .toList();
+              final statementCount = categoryStatements.length;
+              
 
               return TweenAnimationBuilder<double>(
                 duration: const Duration(milliseconds: 300),
@@ -225,9 +227,14 @@ class _PhraseBankState extends State<PhraseBank> {
 
   // Построение сетки фраз
   Widget _buildStatementsGrid() {
-    final statements = _getSortedStatements()
+    final allStatements = _getSortedStatements();
+    
+    final statements = allStatements
         .where((s) => s.categoryId == _selectedCategory!.id)
         .toList();
+    
+    for (final statement in allStatements) {
+    }
 
     if (statements.isEmpty) {
       return const Center(

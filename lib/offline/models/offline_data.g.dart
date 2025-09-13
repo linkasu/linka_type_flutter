@@ -13,7 +13,7 @@ OfflineData _$OfflineDataFromJson(Map<String, dynamic> json) => OfflineData(
       statements: (json['statements'] as List<dynamic>)
           .map((e) => Statement.fromJson(e as Map<String, dynamic>))
           .toList(),
-      lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+      lastUpdated: OfflineData._dateTimeFromJson(json['lastUpdated']),
       version: (json['version'] as num?)?.toInt() ?? 1,
     );
 
@@ -21,6 +21,6 @@ Map<String, dynamic> _$OfflineDataToJson(OfflineData instance) =>
     <String, dynamic>{
       'categories': instance.categories,
       'statements': instance.statements,
-      'lastUpdated': instance.lastUpdated.toIso8601String(),
+      'lastUpdated': OfflineData._dateTimeToJson(instance.lastUpdated),
       'version': instance.version,
     };

@@ -51,7 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
     _refreshService = DataRefreshService(_dataManager.offlineManager);
 
     // Получаем данные при первой загрузке
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     _loadData();
     _setupDataRefresh();
@@ -81,7 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
     // Запускаем периодическую проверку каждые 5 секунд
     _refreshService.startPeriodicRefresh();
 
-    print('HomeScreen: Data refresh service started');
   }
 
   void _onCategoriesUpdated(List<Category> newCategories) {
@@ -107,12 +108,12 @@ class _HomeScreenState extends State<HomeScreen> {
       // Показываем уведомление о обновлении
       _showUpdateNotification('Категории обновлены');
 
-      print('HomeScreen: Categories updated from server');
     }
   }
 
   void _onStatementsUpdated(List<Statement> newStatements) {
     if (!mounted) return;
+
 
     // Проверяем, изменились ли фразы
     final hasChanges = !_areStatementsEqual(_statements, newStatements);
@@ -125,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // Показываем уведомление о обновлении
       _showUpdateNotification('Фразы обновлены');
 
-      print('HomeScreen: Statements updated from server');
+    } else {
     }
   }
 
@@ -155,12 +156,12 @@ class _HomeScreenState extends State<HomeScreen> {
       _showUpdateNotification(
           'Фразы в категории "${category.title}" обновлены');
 
-      print('HomeScreen: Statements for category "${category.title}" updated');
     }
   }
 
   void _onSyncStateChanged(SyncState syncState) {
     if (!mounted) return;
+
 
     // Обновляем UI в зависимости от состояния синхронизации
     if (syncState.status == SyncStatus.synced &&
@@ -186,7 +187,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   bool _areStatementsEqual(List<Statement> list1, List<Statement> list2) {
-    if (list1.length != list2.length) return false;
+    if (list1.length != list2.length) {
+      return false;
+    }
 
     for (int i = 0; i < list1.length; i++) {
       if (list1[i].id != list2[i].id ||
@@ -232,6 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _statements = statements;
         _isLoading = false;
       });
+      
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -304,7 +308,6 @@ class _HomeScreenState extends State<HomeScreen> {
     // Если выбрана категория, сразу проверяем её фразы
     if (category != null) {
       _refreshService.checkCategoryStatements(category);
-      print('HomeScreen: Started monitoring category "${category.title}"');
     }
   }
 

@@ -79,9 +79,27 @@ class ApiClient {
       }
 
       developer.log('Получен ответ: ${response.statusCode} - ${response.body}');
+      
+      // Детальное логирование ошибок
+      if (response.statusCode >= 400) {
+        developer.log('HTTP ERROR ${response.statusCode}: ${response.body}');
+        developer.log('Request URL: $uri');
+        developer.log('Request Headers: $headers');
+        if (body != null) {
+          developer.log('Request Body: ${jsonEncode(body)}');
+        }
+      }
+      
       return response;
     } catch (e) {
       developer.log('Ошибка при выполнении запроса: $e');
+      final uri = Uri.parse('$baseUrl$endpoint').replace(queryParameters: queryParams);
+      final headers = await _getHeaders();
+      developer.log('Request URL: $uri');
+      developer.log('Request Headers: $headers');
+      if (body != null) {
+        developer.log('Request Body: ${jsonEncode(body)}');
+      }
       rethrow;
     }
   }

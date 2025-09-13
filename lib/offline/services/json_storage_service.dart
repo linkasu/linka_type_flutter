@@ -218,4 +218,48 @@ class JsonStorageService {
       return false;
     }
   }
+
+  /// Сохраняет строку по ключу
+  Future<void> setString(String key, String value) async {
+    try {
+      final directory = await _getAppDirectory();
+      final file = File('${directory.path}/$key.json');
+      await file.writeAsString(value);
+    } catch (e) {
+      print('JsonStorageService: Error saving string for key $key: $e');
+      rethrow;
+    }
+  }
+
+  /// Получает строку по ключу
+  Future<String?> getString(String key) async {
+    try {
+      final directory = await _getAppDirectory();
+      final file = File('${directory.path}/$key.json');
+
+      if (!await file.exists()) {
+        return null;
+      }
+
+      return await file.readAsString();
+    } catch (e) {
+      print('JsonStorageService: Error loading string for key $key: $e');
+      return null;
+    }
+  }
+
+  /// Удаляет данные по ключу
+  Future<void> remove(String key) async {
+    try {
+      final directory = await _getAppDirectory();
+      final file = File('${directory.path}/$key.json');
+
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      print('JsonStorageService: Error removing key $key: $e');
+      rethrow;
+    }
+  }
 }

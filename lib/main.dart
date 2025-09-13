@@ -7,6 +7,7 @@ import 'ui/ui.dart';
 import 'services/shortcut_controller.dart';
 import 'services/data_manager.dart';
 import 'services/auth_error_handler.dart';
+import 'services/analytics_manager.dart';
 import 'api/services/data_service.dart';
 import 'offline/providers/sync_provider.dart';
 
@@ -17,13 +18,25 @@ void main() async {
   final dataService = DataService();
   final dataManager = await DataManager.create(dataService);
 
-  runApp(MyApp(dataManager: dataManager));
+  // Инициализируем аналитику
+  final analyticsManager = AnalyticsManager();
+  await analyticsManager.initialize();
+
+  // Трекинг запуска приложения
+  await analyticsManager.trackEvent('app_startup', data: {
+    'timestamp': DateTime.now().toIso8601String(),
+    'platform': 'flutter',
+  });
+
+  runApp(MyApp(dataManager: dataManager, analyticsManager: analyticsManager));
 }
 
 class MyApp extends StatelessWidget {
   final DataManager dataManager;
+  final AnalyticsManager analyticsManager;
 
-  const MyApp({super.key, required this.dataManager});
+  const MyApp(
+      {super.key, required this.dataManager, required this.analyticsManager});
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +48,8 @@ class MyApp extends StatelessWidget {
         ),
         // Провайдер для доступа к менеджеру данных
         Provider<DataManager>.value(value: dataManager),
+        // Провайдер для доступа к аналитике
+        Provider<AnalyticsManager>.value(value: analyticsManager),
       ],
       child: KeyboardListener(
         focusNode: FocusNode(),

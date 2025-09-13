@@ -4,6 +4,8 @@ import '../../services/tts_service.dart';
 import '../../services/statement_service.dart';
 import '../../services/data_refresh_service.dart';
 import '../../services/data_manager.dart';
+import '../../services/analytics_manager.dart';
+import '../../services/analytics_events.dart';
 import '../../api/api.dart';
 import '../../offline/models/sync_state.dart';
 import '../theme/app_theme.dart';
@@ -24,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TTSService _ttsService = TTSService.instance;
   final StatementService _statementService = StatementService();
   late final DataManager _dataManager;
+  late final AnalyticsManager _analyticsManager;
   late final DataRefreshService _refreshService;
   final FocusNode _phraseBankFocus = FocusNode();
 
@@ -44,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Инициализируем менеджеры данных
     _dataManager = context.read<DataManager>();
+    _analyticsManager = context.read<AnalyticsManager>();
     _refreshService = DataRefreshService(_dataManager.offlineManager);
 
     // Получаем данные при первой загрузке
@@ -51,6 +55,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _loadData();
     _setupDataRefresh();
+    _initializeAnalytics();
+  }
+
+  Future<void> _initializeAnalytics() async {
+    await _analyticsManager.trackEvent(AnalyticsEvents.screenView, data: {
+      'screen_name': 'home_screen',
+      'timestamp': DateTime.now().toIso8601String(),
+    });
   }
 
   void _setupShortcuts() {
@@ -249,20 +261,41 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _sayText(String text) async {
+    await _analyticsManager.trackEvent(AnalyticsEvents.ttsStarted, data: {
+      'text_length': text.length,
+      'source': 'text_input',
+    });
     await _ttsService.say(text);
   }
 
   Future<void> _downloadText(String text) async {
+    await _analyticsManager.trackEvent(AnalyticsEvents.ttsStarted, data: {
+      'text_length': text.length,
+      'source': 'text_input',
+      'download': true,
+    });
     await _ttsService.say(text, download: true);
   }
 
   Future<void> _sayStatement(Statement statement) async {
+    await _analyticsManager.trackEvent(AnalyticsEvents.ttsStarted, data: {
+      'statement_id': statement.id,
+      'category_id': statement.categoryId,
+      'text_length': statement.title.length,
+      'source': 'phrase_bank',
+    });
     await _ttsService.say(statement.title);
   }
 
   void _onCategorySelected(Category? category) {
     setState(() {
       _selectedCategory = category;
+    });
+
+    // Трекинг события выбора категории
+    _analyticsManager.trackEvent(AnalyticsEvents.categoryViewed, data: {
+      'category_id': category?.id,
+      'category_title': category?.title,
     });
 
     // Устанавливаем категорию для мониторинга в refresh service
@@ -298,6 +331,16 @@ class _HomeScreenState extends State<HomeScreen> {
           result['text']!,
           result['dropdown']!,
         );
+
+        // Трекинг успешного обновления
+        await _analyticsManager
+            .trackEvent(AnalyticsEvents.statementUpdated, data: {
+          'statement_id': statement.id,
+          'old_category_id': statement.categoryId,
+          'new_category_id': result['dropdown']!,
+          'text_length': result['text']!.length,
+        });
+
         await _loadData();
         if (mounted) {
           ScaffoldMessenger.of(
@@ -305,6 +348,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ).showSnackBar(const SnackBar(content: Text('Фраза обновлена')));
         }
       } catch (e) {
+        // Трекинг ошибки обновления
+        await _analyticsManager
+            .trackEvent(AnalyticsEvents.errorOccurred, data: {
+          'error_type': 'statement_update_failed',
+          'statement_id': statement.id,
+          'error_message': e.toString(),
+        });
+
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -324,6 +375,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (confirmed == true) {
       try {
         await _dataManager.deleteStatement(statement.id);
+
+        // Трекинг успешного удаления
+        await _analyticsManager
+            .trackEvent(AnalyticsEvents.statementDeleted, data: {
+          'statement_id': statement.id,
+          'category_id': statement.categoryId,
+          'text_length': statement.title.length,
+        });
+
         await _loadData();
         if (mounted) {
           ScaffoldMessenger.of(
@@ -331,6 +391,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ).showSnackBar(const SnackBar(content: Text('Фраза удалена')));
         }
       } catch (e) {
+        // Трекинг ошибки удаления
+        await _analyticsManager
+            .trackEvent(AnalyticsEvents.errorOccurred, data: {
+          'error_type': 'statement_delete_failed',
+          'statement_id': statement.id,
+          'error_message': e.toString(),
+        });
+
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -405,6 +473,14 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result != null) {
       try {
         await _dataManager.createCategory(result);
+
+        // Трекинг успешного создания категории
+        await _analyticsManager
+            .trackEvent(AnalyticsEvents.categoryCreated, data: {
+          'category_title': result,
+          'title_length': result.length,
+        });
+
         await _loadData();
         if (mounted) {
           ScaffoldMessenger.of(
@@ -412,6 +488,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ).showSnackBar(const SnackBar(content: Text('Категория добавлена')));
         }
       } catch (e) {
+        // Трекинг ошибки создания
+        await _analyticsManager
+            .trackEvent(AnalyticsEvents.errorOccurred, data: {
+          'error_type': 'category_create_failed',
+          'category_title': result,
+          'error_message': e.toString(),
+        });
+
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -449,6 +533,15 @@ class _HomeScreenState extends State<HomeScreen> {
           result['text']!,
           result['dropdown']!,
         );
+
+        // Трекинг успешного создания фразы
+        await _analyticsManager
+            .trackEvent(AnalyticsEvents.statementCreated, data: {
+          'category_id': result['dropdown']!,
+          'text_length': result['text']!.length,
+          'selected_category_id': _selectedCategory?.id,
+        });
+
         await _loadData();
         if (mounted) {
           ScaffoldMessenger.of(
@@ -456,6 +549,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ).showSnackBar(const SnackBar(content: Text('Фраза добавлена')));
         }
       } catch (e) {
+        // Трекинг ошибки создания
+        await _analyticsManager
+            .trackEvent(AnalyticsEvents.errorOccurred, data: {
+          'error_type': 'statement_create_failed',
+          'category_id': result['dropdown']!,
+          'text_length': result['text']!.length,
+          'error_message': e.toString(),
+        });
+
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -566,7 +668,12 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () {
+            onPressed: () async {
+              await _analyticsManager
+                  .trackEvent(AnalyticsEvents.buttonClicked, data: {
+                'button_name': 'settings',
+                'screen': 'home_screen',
+              });
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );

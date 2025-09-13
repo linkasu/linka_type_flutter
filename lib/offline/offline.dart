@@ -2,12 +2,14 @@
 export 'models/offline_data.dart';
 export 'models/offline_operation.dart';
 export 'models/sync_state.dart';
+export 'models/offline_event.dart';
 
 // Сервисы
 export 'services/json_storage_service.dart';
 export 'services/offline_manager.dart';
 export 'services/offline_operation_service.dart';
 export 'services/sync_service.dart';
+export 'services/offline_analytics_service.dart';
 
 // Провайдеры
 export 'providers/sync_provider.dart';

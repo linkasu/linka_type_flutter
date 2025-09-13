@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../api/api.dart';
+import '../../services/analytics_manager.dart';
+import '../../services/analytics_events.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
@@ -18,10 +21,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
+  late AnalyticsManager _analyticsManager;
 
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _analyticsManager = context.read<AnalyticsManager>();
+    _initializeAnalytics();
+  }
+
+  Future<void> _initializeAnalytics() async {
+    await _analyticsManager.trackEvent(AnalyticsEvents.screenView, data: {
+      'screen_name': 'login_screen',
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+  }
 
   @override
   void dispose() {
@@ -44,6 +62,13 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
 
+      // Трекинг успешного входа
+      await _analyticsManager.trackEvent(AnalyticsEvents.userLogin, data: {
+        'user_email': response.user.email,
+        'user_id': response.user.id,
+        'login_method': 'email_password',
+      });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -59,10 +84,25 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } on ApiException catch (e) {
+      // Трекинг ошибки входа
+      await _analyticsManager.trackEvent(AnalyticsEvents.errorOccurred, data: {
+        'error_type': 'login_failed',
+        'error_code': e.statusCode,
+        'user_email': _emailController.text.trim(),
+        'error_message': e.message,
+      });
+
       setState(() {
         _errorMessage = _getErrorMessage(e.statusCode);
       });
     } catch (e) {
+      // Трекинг общей ошибки
+      await _analyticsManager.trackEvent(AnalyticsEvents.errorOccurred, data: {
+        'error_type': 'login_failed',
+        'user_email': _emailController.text.trim(),
+        'error_message': e.toString(),
+      });
+
       setState(() {
         _errorMessage =
             AppLocalizations.of(context)!.errorOccurred(e.toString());
@@ -224,7 +264,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           TextButton(
-                            onPressed: () {
+                            onPressed: () async {
+                              await _analyticsManager.trackEvent(
+                                  AnalyticsEvents.buttonClicked,
+                                  data: {
+                                    'button_name': 'register',
+                                    'screen': 'login_screen',
+                                  });
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => const RegisterScreen(),
@@ -234,7 +280,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Text(AppLocalizations.of(context)!.register),
                           ),
                           TextButton(
-                            onPressed: () {
+                            onPressed: () async {
+                              await _analyticsManager.trackEvent(
+                                  AnalyticsEvents.buttonClicked,
+                                  data: {
+                                    'button_name': 'forgot_password',
+                                    'screen': 'login_screen',
+                                  });
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) =>

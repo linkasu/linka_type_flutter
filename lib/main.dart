@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -15,14 +14,6 @@ import 'offline/providers/sync_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Отключаем анимации на десктопных платформах для предотвращения мерцания
-  if (kIsWeb || 
-      defaultTargetPlatform == TargetPlatform.linux ||
-      defaultTargetPlatform == TargetPlatform.macOS ||
-      defaultTargetPlatform == TargetPlatform.windows) {
-    timeDilation = 0.0;
-  }
 
   // Инициализируем менеджер данных
   final dataService = DataService();
@@ -90,14 +81,15 @@ class MyApp extends StatelessWidget {
             '/home': (context) => const HomeScreen(),
           },
           builder: (context, child) {
+            final isDesktop = kIsWeb || 
+                defaultTargetPlatform == TargetPlatform.linux ||
+                defaultTargetPlatform == TargetPlatform.macOS ||
+                defaultTargetPlatform == TargetPlatform.windows;
+                
             return MediaQuery(
               data: MediaQuery.of(context).copyWith(
-                textScaleFactor:
-                    MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
-                disableAnimations: kIsWeb || 
-                    defaultTargetPlatform == TargetPlatform.linux ||
-                    defaultTargetPlatform == TargetPlatform.macOS ||
-                    defaultTargetPlatform == TargetPlatform.windows,
+                textScaleFactor: MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
+                disableAnimations: isDesktop,
               ),
               child: child!,
             );

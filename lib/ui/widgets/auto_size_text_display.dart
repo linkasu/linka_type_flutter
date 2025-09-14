@@ -22,9 +22,11 @@ class AutoSizeTextDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final textScaleFactor = MediaQuery.textScaleFactorOf(context);
         final fontSize = TextUtils.calculateOptimalFontSize(
           constraints,
           text,
+          textScaleFactor: textScaleFactor,
         );
 
         if (isEditing && controller != null) {

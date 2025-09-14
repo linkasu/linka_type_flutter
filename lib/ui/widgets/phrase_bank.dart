@@ -128,7 +128,8 @@ class _PhraseBankState extends State<PhraseBank> {
                   if (widget.onPresentationMode != null)
                     IconButton(
                       icon: const Icon(Icons.present_to_all),
-                      onPressed: () => widget.onPresentationMode!(_selectedCategory!),
+                      onPressed: () =>
+                          widget.onPresentationMode!(_selectedCategory!),
                       tooltip: 'Режим выступления',
                     ),
                   IconButton(
@@ -203,29 +204,30 @@ class _PhraseBankState extends State<PhraseBank> {
                   .where((s) => s.categoryId == category.id)
                   .toList();
               final statementCount = categoryStatements.length;
-              
 
-              return TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 300),
-                tween: Tween(begin: 0.0, end: 1.0),
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: 0.8 + (0.2 * value),
-                    child: Opacity(
-                      opacity: value,
-                      child: SizedBox(
-                        width: cardWidth,
-                        child: CategoryCard(
-                          category: category,
-                          statementCount: statementCount,
-                          onTap: () => widget.onCategorySelected(category),
-                          onEdit: () => widget.onEditCategory(category),
-                          onDelete: () => widget.onDeleteCategory(category),
+              return RepaintBoundary(
+                child: TweenAnimationBuilder<double>(
+                  duration: const Duration(milliseconds: 300),
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  builder: (context, value, child) {
+                    return Transform.scale(
+                      scale: 0.8 + (0.2 * value),
+                      child: Opacity(
+                        opacity: value,
+                        child: SizedBox(
+                          width: cardWidth,
+                          child: CategoryCard(
+                            category: category,
+                            statementCount: statementCount,
+                            onTap: () => widget.onCategorySelected(category),
+                            onEdit: () => widget.onEditCategory(category),
+                            onDelete: () => widget.onDeleteCategory(category),
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               );
             }).toList(),
           ),
@@ -237,7 +239,7 @@ class _PhraseBankState extends State<PhraseBank> {
   // Построение сетки фраз
   Widget _buildStatementsGrid() {
     final allStatements = _getSortedStatements();
-    
+
     final statements = allStatements
         .where((s) => s.categoryId == _selectedCategory!.id)
         .toList();
@@ -277,26 +279,28 @@ class _PhraseBankState extends State<PhraseBank> {
             spacing: 12, // 1em отступы между карточками
             runSpacing: 12, // 1em отступы между рядами
             children: statements.map((statement) {
-              return TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 300),
-                tween: Tween(begin: 0.0, end: 1.0),
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: 0.8 + (0.2 * value),
-                    child: Opacity(
-                      opacity: value,
-                      child: SizedBox(
-                        width: cardWidth,
-                        child: StatementCard(
-                          statement: statement,
-                          onTap: () => widget.onSayStatement(statement),
-                          onEdit: () => widget.onEditStatement(statement),
-                          onDelete: () => widget.onDeleteStatement(statement),
+              return RepaintBoundary(
+                child: TweenAnimationBuilder<double>(
+                  duration: const Duration(milliseconds: 300),
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  builder: (context, value, child) {
+                    return Transform.scale(
+                      scale: 0.8 + (0.2 * value),
+                      child: Opacity(
+                        opacity: value,
+                        child: SizedBox(
+                          width: cardWidth,
+                          child: StatementCard(
+                            statement: statement,
+                            onTap: () => widget.onSayStatement(statement),
+                            onEdit: () => widget.onEditStatement(statement),
+                            onDelete: () => widget.onDeleteStatement(statement),
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               );
             }).toList(),
           ),

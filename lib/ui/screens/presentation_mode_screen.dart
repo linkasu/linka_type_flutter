@@ -27,7 +27,7 @@ class _ExitIntent extends Intent {
 class PresentationModeScreen extends StatefulWidget {
   final Category category;
   final List<Statement> statements;
-  
+
   const PresentationModeScreen({
     super.key,
     required this.category,
@@ -43,16 +43,16 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
   late final AnalyticsManager _analyticsManager;
   final TTSService _ttsService = TTSService.instance;
   final FocusNode _focusNode = FocusNode();
-  
+
   List<Statement> _statements = [];
   int _currentIndex = 0;
   bool _isPlaying = false;
   bool _isLoading = true;
   late DateTime _sessionStartTime;
-  
+
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -60,7 +60,7 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
     _setupAnimations();
     _filterStatements();
     _trackScreenView();
-    
+
     // Устанавливаем фокус для обработки клавиш
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
@@ -75,24 +75,25 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
 
   void _setupAnimations() {
     _slideController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(1.0, 0.0),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _slideController,
-      curve: Curves.easeInOut,
+      curve: Curves.easeOutCubic,
     ));
-    
+
     // Устанавливаем анимацию в конечное состояние для первой фразы
     _slideController.value = 1.0;
   }
 
   Future<void> _trackScreenView() async {
-    await _analyticsManager.trackEvent(AnalyticsEvents.presentationModeStarted, data: {
+    await _analyticsManager
+        .trackEvent(AnalyticsEvents.presentationModeStarted, data: {
       'category_id': widget.category.id,
       'category_title': widget.category.title,
       'phrases_count': _statements.length,
@@ -104,10 +105,10 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
     final categoryStatements = widget.statements
         .where((s) => s.categoryId == widget.category.id)
         .toList();
-    
+
     // Сортируем от старых к новым по дате создания
     categoryStatements.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    
+
     setState(() {
       _statements = categoryStatements;
       _isLoading = false;
@@ -115,9 +116,9 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
   }
 
   bool get _hasStatements => _statements.isNotEmpty;
-  Statement? get _currentStatement => 
-      _hasStatements && _currentIndex < _statements.length 
-          ? _statements[_currentIndex] 
+  Statement? get _currentStatement =>
+      _hasStatements && _currentIndex < _statements.length
+          ? _statements[_currentIndex]
           : null;
 
   Future<void> _navigateToPrevious() async {
@@ -126,8 +127,9 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
         _currentIndex--;
       });
       _slideController.forward(from: 0.0);
-      
-      await _analyticsManager.trackEvent(AnalyticsEvents.presentationNavigation, data: {
+
+      await _analyticsManager
+          .trackEvent(AnalyticsEvents.presentationNavigation, data: {
         'direction': 'previous',
         'phrase_index': _currentIndex,
         'statement_id': _statements[_currentIndex].id,
@@ -148,8 +150,9 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
         _currentIndex++;
       });
       _slideController.forward(from: 0.0);
-      
-      await _analyticsManager.trackEvent(AnalyticsEvents.presentationNavigation, data: {
+
+      await _analyticsManager
+          .trackEvent(AnalyticsEvents.presentationNavigation, data: {
         'direction': 'next',
         'phrase_index': _currentIndex,
         'statement_id': _statements[_currentIndex].id,
@@ -175,7 +178,8 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
   }
 
   Future<void> _trackShortcutUsage(String key) async {
-    await _analyticsManager.trackEvent(AnalyticsEvents.presentationKeyboardShortcut, data: {
+    await _analyticsManager
+        .trackEvent(AnalyticsEvents.presentationKeyboardShortcut, data: {
       'key': key,
       'phrase_index': _currentIndex,
       'category_id': widget.category.id,
@@ -192,8 +196,9 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
       setState(() {
         _isPlaying = false;
       });
-      
-      await _analyticsManager.trackEvent(AnalyticsEvents.presentationPhraseSkipped, data: {
+
+      await _analyticsManager
+          .trackEvent(AnalyticsEvents.presentationPhraseSkipped, data: {
         'statement_id': statement.id,
         'statement_title': statement.title,
         'phrase_index': _currentIndex,
@@ -205,8 +210,9 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
       setState(() {
         _isPlaying = true;
       });
-      
-      await _analyticsManager.trackEvent(AnalyticsEvents.presentationPhrasePlayed, data: {
+
+      await _analyticsManager
+          .trackEvent(AnalyticsEvents.presentationPhrasePlayed, data: {
         'statement_id': statement.id,
         'statement_title': statement.title,
         'phrase_index': _currentIndex,
@@ -214,7 +220,7 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
         'category_id': widget.category.id,
         'timestamp': DateTime.now().toIso8601String(),
       });
-      
+
       // Автоматически останавливаем воспроизведение через некоторое время
       Future.delayed(const Duration(seconds: 10), () {
         if (mounted && _isPlaying) {
@@ -230,16 +236,18 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
     if (_isPlaying) {
       await _ttsService.stop();
     }
-    
-    await _analyticsManager.trackEvent(AnalyticsEvents.presentationModeExited, data: {
+
+    await _analyticsManager
+        .trackEvent(AnalyticsEvents.presentationModeExited, data: {
       'category_id': widget.category.id,
       'category_title': widget.category.title,
-      'session_duration': DateTime.now().difference(_sessionStartTime).inSeconds,
+      'session_duration':
+          DateTime.now().difference(_sessionStartTime).inSeconds,
       'phrases_viewed': _currentIndex + 1,
       'total_phrases': _statements.length,
       'timestamp': DateTime.now().toIso8601String(),
     });
-    
+
     if (mounted) {
       Navigator.of(context).pop();
     }
@@ -275,12 +283,12 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
             focusNode: _focusNode,
             child: SafeArea(
               child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                )
-              : _hasStatements
-                  ? _buildPresentationView()
-                  : _buildEmptyState(),
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    )
+                  : _hasStatements
+                      ? _buildPresentationView()
+                      : _buildEmptyState(),
             ),
           ),
         ),
@@ -329,45 +337,49 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
             ],
           ),
         ),
-        
+
         // Основная область с фразой
         Expanded(
           child: Center(
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 32.0),
-                padding: const EdgeInsets.all(24.0),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.3)),
-                ),
-                child: Text(
-                  _currentStatement?.title ?? '',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w500,
-                    height: 1.4,
+            child: RepaintBoundary(
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 32.0),
+                  padding: const EdgeInsets.all(24.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.3)),
                   ),
-                  textAlign: TextAlign.center,
+                  child: Text(
+                    _currentStatement?.title ?? '',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w500,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
             ),
           ),
         ),
-        
+
         // Индикатор прогресса
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 32.0),
           child: LinearProgressIndicator(
-            value: _hasStatements ? (_currentIndex + 1) / _statements.length : 0.0,
+            value:
+                _hasStatements ? (_currentIndex + 1) / _statements.length : 0.0,
             backgroundColor: Colors.white.withOpacity(0.3),
-            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+            valueColor:
+                const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
           ),
         ),
-        
+
         // Управление
         Padding(
           padding: const EdgeInsets.all(32.0),
@@ -384,7 +396,7 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
                 onPressed: _currentIndex > 0 ? _navigateToPrevious : null,
                 tooltip: 'Предыдущая фраза (Z)',
               ),
-              
+
               // Воспроизведение
               IconButton(
                 icon: Icon(
@@ -395,21 +407,25 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
                 onPressed: _togglePlayback,
                 tooltip: 'Воспроизведение (Space)',
               ),
-              
+
               // Следующая фраза
               IconButton(
                 icon: Icon(
                   Icons.skip_next,
-                  color: _currentIndex < _statements.length - 1 ? Colors.white : Colors.grey,
+                  color: _currentIndex < _statements.length - 1
+                      ? Colors.white
+                      : Colors.grey,
                   size: 32,
                 ),
-                onPressed: _currentIndex < _statements.length - 1 ? _navigateToNext : null,
+                onPressed: _currentIndex < _statements.length - 1
+                    ? _navigateToNext
+                    : null,
                 tooltip: 'Следующая фраза (M)',
               ),
             ],
           ),
         ),
-        
+
         // Подсказки по управлению
         Padding(
           padding: const EdgeInsets.only(bottom: 16.0),

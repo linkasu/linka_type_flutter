@@ -16,6 +16,7 @@ class TextUtils {
     double? maxSize,
     double? step,
     double? padding,
+    double? textScaleFactor,
   }) {
     if (text.isEmpty) return defaultFontSize;
 
@@ -23,6 +24,7 @@ class TextUtils {
     final max = maxSize ?? maxFontSize;
     final stepSize = step ?? fontSizeStep;
     final paddingSize = padding ?? paddingOffset;
+    final scaleFactor = textScaleFactor ?? 1.0;
 
     double fontSize = max;
 
@@ -38,6 +40,7 @@ class TextUtils {
         ),
         textDirection: TextDirection.ltr,
         maxLines: null,
+        textScaleFactor: scaleFactor,
       );
 
       textPainter.layout(maxWidth: constraints.maxWidth - paddingSize);

@@ -206,27 +206,15 @@ class _PhraseBankState extends State<PhraseBank> {
               final statementCount = categoryStatements.length;
 
               return RepaintBoundary(
-                child: TweenAnimationBuilder<double>(
-                  duration: const Duration(milliseconds: 300),
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  builder: (context, value, child) {
-                    return Transform.scale(
-                      scale: 0.8 + (0.2 * value),
-                      child: Opacity(
-                        opacity: value,
-                        child: SizedBox(
-                          width: cardWidth,
-                          child: CategoryCard(
-                            category: category,
-                            statementCount: statementCount,
-                            onTap: () => widget.onCategorySelected(category),
-                            onEdit: () => widget.onEditCategory(category),
-                            onDelete: () => widget.onDeleteCategory(category),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                child: SizedBox(
+                  width: cardWidth,
+                  child: CategoryCard(
+                    category: category,
+                    statementCount: statementCount,
+                    onTap: () => widget.onCategorySelected(category),
+                    onEdit: () => widget.onEditCategory(category),
+                    onDelete: () => widget.onDeleteCategory(category),
+                  ),
                 ),
               );
             }).toList(),
@@ -280,26 +268,14 @@ class _PhraseBankState extends State<PhraseBank> {
             runSpacing: 12, // 1em отступы между рядами
             children: statements.map((statement) {
               return RepaintBoundary(
-                child: TweenAnimationBuilder<double>(
-                  duration: const Duration(milliseconds: 300),
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  builder: (context, value, child) {
-                    return Transform.scale(
-                      scale: 0.8 + (0.2 * value),
-                      child: Opacity(
-                        opacity: value,
-                        child: SizedBox(
-                          width: cardWidth,
-                          child: StatementCard(
-                            statement: statement,
-                            onTap: () => widget.onSayStatement(statement),
-                            onEdit: () => widget.onEditStatement(statement),
-                            onDelete: () => widget.onDeleteStatement(statement),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                child: SizedBox(
+                  width: cardWidth,
+                  child: StatementCard(
+                    statement: statement,
+                    onTap: () => widget.onSayStatement(statement),
+                    onEdit: () => widget.onEditStatement(statement),
+                    onDelete: () => widget.onDeleteStatement(statement),
+                  ),
                 ),
               );
             }).toList(),

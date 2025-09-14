@@ -51,7 +51,6 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
   late DateTime _sessionStartTime;
 
   late AnimationController _slideController;
-  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
@@ -75,18 +74,10 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
 
   void _setupAnimations() {
     _slideController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 0),
       vsync: this,
     );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(1.0, 0.0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-
+    
     // Устанавливаем анимацию в конечное состояние для первой фразы
     _slideController.value = 1.0;
   }
@@ -126,7 +117,6 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
       setState(() {
         _currentIndex--;
       });
-      _slideController.forward(from: 0.0);
 
       await _analyticsManager
           .trackEvent(AnalyticsEvents.presentationNavigation, data: {
@@ -149,7 +139,6 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
       setState(() {
         _currentIndex++;
       });
-      _slideController.forward(from: 0.0);
 
       await _analyticsManager
           .trackEvent(AnalyticsEvents.presentationNavigation, data: {
@@ -342,26 +331,23 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
         Expanded(
           child: Center(
             child: RepaintBoundary(
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 32.0),
-                  padding: const EdgeInsets.all(24.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.3)),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 32.0),
+                padding: const EdgeInsets.all(24.0),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                ),
+                child: Text(
+                  _currentStatement?.title ?? '',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
                   ),
-                  child: Text(
-                    _currentStatement?.title ?? '',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),

@@ -305,7 +305,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   Text('Голос', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    initialValue: _selectedVoice.isNotEmpty &&
+                    value: _selectedVoice.isNotEmpty &&
                             ((_useYandex || Platform.isLinux)
                                 ? _yandexVoices.any(
                                     (v) => v.voiceURI == _selectedVoice,

@@ -80,7 +80,7 @@ class CrudDialogs {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                initialValue: selectedValue,
+                value: selectedValue,
                 decoration: InputDecoration(
                   labelText: dropdownLabel,
                   border: const OutlineInputBorder(),

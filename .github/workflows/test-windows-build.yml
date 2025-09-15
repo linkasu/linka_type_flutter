@@ -1,0 +1,63 @@
+name: Test Windows Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test-windows-build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+        cache: true
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Run tests
+      run: flutter test
+      
+    - name: Analyze code
+      run: flutter analyze
+      
+    - name: Check formatting
+      run: dart format --set-exit-if-changed .
+      
+    - name: Build Windows app
+      run: flutter build windows --release
+      
+    - name: Verify build output
+      run: |
+        echo "Build directory contents:"
+        dir build\windows\x64\runner\Release
+        echo "Checking for main executable:"
+        if (Test-Path "build\windows\x64\runner\Release\linka_type_flutter.exe") {
+          echo "✅ Main executable found"
+        } else {
+          echo "❌ Main executable not found"
+          exit 1
+        }
+        echo "Checking for Flutter engine:"
+        if (Test-Path "build\windows\x64\runner\Release\flutter_windows.dll") {
+          echo "✅ Flutter engine found"
+        } else {
+          echo "❌ Flutter engine not found"
+          exit 1
+        }
+        echo "Checking for assets:"
+        if (Test-Path "build\windows\x64\runner\Release\data\flutter_assets") {
+          echo "✅ Flutter assets found"
+        } else {
+          echo "❌ Flutter assets not found"
+          exit 1
+        }

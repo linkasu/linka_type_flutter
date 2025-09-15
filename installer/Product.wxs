@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" 
+           Name="LINKa Type" 
+           Language="1033" 
+           Version="4.0.0" 
+           Manufacturer="LINKa" 
+           UpgradeCode="PUT-GUID-HERE">
+    
+    <Package InstallerVersion="200" 
+             Compressed="yes" 
+             InstallScope="perMachine" 
+             Description="LINKa Type - приложение для набора текста" />
+    
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate />
+    
+    <Feature Id="ProductFeature" Title="LINKa Type" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="DesktopShortcut" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+    
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="LINKa Type">
+          <Component Id="MainExecutable" Guid="*">
+            <File Id="linka_type_flutter.exe" 
+                  Source="app\linka_type_flutter.exe" 
+                  KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+      
+      <!-- Desktop Shortcut -->
+      <Directory Id="DesktopFolder" Name="Desktop" />
+      
+      <!-- Start Menu -->
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ProgramMenuDir" Name="LINKa Type" />
+      </Directory>
+    </Directory>
+    
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="MainExecutable">
+        <File Id="linka_type_flutter.exe" 
+              Source="app\linka_type_flutter.exe" 
+              KeyPath="yes" />
+      </Component>
+      
+      <!-- Flutter Engine -->
+      <Component Id="FlutterEngine">
+        <File Id="flutter_windows.dll" 
+              Source="app\flutter_windows.dll" />
+      </Component>
+      
+      <!-- Flutter Assets -->
+      <Component Id="FlutterAssets">
+        <File Id="flutter_assets" 
+              Source="app\data\flutter_assets" />
+      </Component>
+      
+      <!-- Flutter ICU Data -->
+      <Component Id="FlutterICUData">
+        <File Id="icudtl.dat" 
+              Source="app\data\icudtl.dat" />
+      </Component>
+      
+      <!-- Flutter AOT Library -->
+      <Component Id="FlutterAOT">
+        <File Id="app.so" 
+              Source="app\data\app.so" />
+      </Component>
+      
+      <!-- Native Assets -->
+      <Component Id="NativeAssets">
+        <File Id="native_assets" 
+              Source="app\native_assets" />
+      </Component>
+      
+      <!-- Plugin Libraries -->
+      <Component Id="PluginLibraries">
+        <File Id="audioplayers_windows_plugin.dll" 
+              Source="app\audioplayers_windows_plugin.dll" />
+        <File Id="connectivity_plus_windows_plugin.dll" 
+              Source="app\connectivity_plus_windows_plugin.dll" />
+        <File Id="flutter_tts_plugin.dll" 
+              Source="app\flutter_tts_plugin.dll" />
+        <File Id="package_info_plus_windows_plugin.dll" 
+              Source="app\package_info_plus_windows_plugin.dll" />
+        <File Id="path_provider_windows_plugin.dll" 
+              Source="app\path_provider_windows_plugin.dll" />
+        <File Id="shared_preferences_windows_plugin.dll" 
+              Source="app\shared_preferences_windows_plugin.dll" />
+      </Component>
+    </ComponentGroup>
+    
+    <!-- Desktop Shortcut -->
+    <Component Id="DesktopShortcut" Directory="DesktopFolder">
+      <Shortcut Id="DesktopShortcut" 
+                Directory="DesktopFolder" 
+                Name="LINKa Type" 
+                WorkingDirectory="INSTALLFOLDER" 
+                Icon="linka_type_flutter.exe" 
+                IconIndex="0" 
+                Advertise="yes" />
+      <RemoveFolder Id="DesktopShortcut" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\LINKa\LINKa Type" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    
+    <!-- Start Menu Shortcut -->
+    <Component Id="StartMenuShortcut" Directory="ProgramMenuDir">
+      <Shortcut Id="StartMenuShortcut" 
+                Directory="ProgramMenuDir" 
+                Name="LINKa Type" 
+                WorkingDirectory="INSTALLFOLDER" 
+                Icon="linka_type_flutter.exe" 
+                IconIndex="0" 
+                Advertise="yes" />
+      <RemoveFolder Id="ProgramMenuDir" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\LINKa\LINKa Type" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    
+  </Product>
+</Wix>

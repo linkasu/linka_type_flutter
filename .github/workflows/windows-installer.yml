@@ -40,6 +40,7 @@ jobs:
         
     - name: Create installer directory structure
       run: |
+        if (Test-Path "installer") { Remove-Item -Recurse -Force "installer" }
         mkdir installer
         mkdir installer\app
         xcopy /E /I /Y build\windows\x64\runner\Release installer\app

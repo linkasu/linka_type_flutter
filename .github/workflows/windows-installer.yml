@@ -54,7 +54,7 @@ jobs:
         
     - name: Copy WiX source file
       run: |
-        copy installer\Product.wxs installer\Product.wxs
+        copy installer\Product.wxs installer\
         
     - name: Compile WiX source
       run: |

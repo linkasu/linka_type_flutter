@@ -26,13 +26,11 @@ jobs:
     - name: Build Windows app
       run: flutter build windows --release
       
-    - name: Download Inno Setup
+    - name: Install Inno Setup via Chocolatey
       run: |
-        $url = "https://files.jrsoftware.org/is/6/innosetup-6.2.2.exe"
-        $output = "innosetup.exe"
-        Invoke-WebRequest -Uri $url -OutFile $output
-        Start-Process -FilePath $output -ArgumentList "/SILENT" -Wait
-        echo "Inno Setup installed"
+        Write-Host "Installing Inno Setup via Chocolatey..."
+        choco install innosetup -y
+        Write-Host "Inno Setup installed successfully"
         
     - name: Create installer directory structure
       run: |
@@ -42,7 +40,15 @@ jobs:
     - name: Compile Inno Setup script
       run: |
         echo "Compiling Inno Setup script..."
-        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\linka_setup.iss
+        $isccPath = "C:\ProgramData\chocolatey\lib\innosetup\tools\ISCC.exe"
+        if (-not (Test-Path $isccPath)) {
+          $isccPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+        }
+        if (-not (Test-Path $isccPath)) {
+          echo "❌ Inno Setup compiler not found"
+          exit 1
+        }
+        & $isccPath installer\linka_setup.iss
         if ($LASTEXITCODE -ne 0) {
           echo "❌ Inno Setup compilation failed"
           exit 1

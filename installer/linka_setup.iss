@@ -26,7 +26,6 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 
 [Files]
 Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "assets\app_icon.png"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\LINKa напиши"; Filename: "{app}\linka_type_flutter.exe"

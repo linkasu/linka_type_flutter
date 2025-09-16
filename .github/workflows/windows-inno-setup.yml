@@ -1,0 +1,77 @@
+name: Windows Inno Setup Build
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build-windows-inno-setup:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.0'
+        channel: 'stable'
+        cache: true
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Build Windows app
+      run: flutter build windows --release
+      
+    - name: Download Inno Setup
+      run: |
+        $url = "https://files.jrsoftware.org/is/6/innosetup-6.2.2.exe"
+        $output = "innosetup.exe"
+        Invoke-WebRequest -Uri $url -OutFile $output
+        Start-Process -FilePath $output -ArgumentList "/SILENT" -Wait
+        echo "Inno Setup installed"
+        
+    - name: Create installer directory structure
+      run: |
+        if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
+        mkdir dist
+        
+    - name: Compile Inno Setup script
+      run: |
+        echo "Compiling Inno Setup script..."
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\linka_setup.iss
+        if ($LASTEXITCODE -ne 0) {
+          echo "❌ Inno Setup compilation failed"
+          exit 1
+        }
+        echo "✅ Inno Setup installer created successfully"
+        dir dist
+        
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-inno-setup
+        path: dist/LINKa-napishi-4.0.0-setup.exe
+        
+    - name: Upload Release Asset
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: dist/LINKa-napishi-4.0.0-setup.exe
+        asset_name: LINKa-napishi-4.0.0-setup.exe
+        asset_content_type: application/octet-stream
+        
+    - name: Create Release Summary
+      if: github.event_name == 'release'
+      run: |
+        echo "## Windows Inno Setup Installer" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Windows Inno Setup installer created successfully" >> $GITHUB_STEP_SUMMARY
+        echo "📦 File: LINKa-napishi-4.0.0-setup.exe" >> $GITHUB_STEP_SUMMARY
+        echo "🔧 Includes: Flutter app, all dependencies, desktop shortcuts" >> $GITHUB_STEP_SUMMARY
+        echo "🌐 Publisher: linka.su" >> $GITHUB_STEP_SUMMARY

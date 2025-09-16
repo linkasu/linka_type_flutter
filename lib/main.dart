@@ -10,10 +10,14 @@ import 'services/data_manager.dart';
 import 'services/auth_error_handler.dart';
 import 'services/analytics_manager.dart';
 import 'api/services/data_service.dart';
+import 'api/utils/certificate_handler.dart';
 import 'offline/providers/sync_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Инициализируем обработчик сертификатов
+  CertificateHandler.initialize();
 
   // Инициализируем менеджер данных
   final dataService = DataService();
@@ -81,14 +85,15 @@ class MyApp extends StatelessWidget {
             '/home': (context) => const HomeScreen(),
           },
           builder: (context, child) {
-            final isDesktop = kIsWeb || 
+            final isDesktop = kIsWeb ||
                 defaultTargetPlatform == TargetPlatform.linux ||
                 defaultTargetPlatform == TargetPlatform.macOS ||
                 defaultTargetPlatform == TargetPlatform.windows;
-                
+
             return MediaQuery(
               data: MediaQuery.of(context).copyWith(
-                textScaleFactor: MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
+                textScaleFactor:
+                    MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
                 disableAnimations: isDesktop,
               ),
               child: child!,

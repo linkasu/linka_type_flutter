@@ -8,10 +8,8 @@ AppUpdatesURL=https://linka.su
 DefaultDirName={autopf}\LINKa
 DefaultGroupName=LINKa
 AllowNoIcons=yes
-LicenseFile=
 OutputDir=dist
 OutputBaseFilename=LINKa-napishi-4.0.0-setup
-SetupIconFile=assets\app_icon.png
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -31,10 +29,10 @@ Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignorever
 Source: "assets\app_icon.png"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\LINKa напиши"; Filename: "{app}\linka_type_flutter.exe"; IconFilename: "{app}\app_icon.png"
+Name: "{group}\LINKa напиши"; Filename: "{app}\linka_type_flutter.exe"
 Name: "{group}\{cm:UninstallProgram,LINKa напиши}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\LINKa напиши"; Filename: "{app}\linka_type_flutter.exe"; IconFilename: "{app}\app_icon.png"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\LINKa напиши"; Filename: "{app}\linka_type_flutter.exe"; IconFilename: "{app}\app_icon.png"; Tasks: quicklaunchicon
+Name: "{autodesktop}\LINKa напиши"; Filename: "{app}\linka_type_flutter.exe"; Tasks: desktopicon
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\LINKa напиши"; Filename: "{app}\linka_type_flutter.exe"; Tasks: quicklaunchicon
 
 [Run]
 Filename: "{app}\linka_type_flutter.exe"; Description: "{cm:LaunchProgram,LINKa напиши}"; Flags: nowait postinstall skipifsilent

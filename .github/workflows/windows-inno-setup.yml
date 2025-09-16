@@ -32,6 +32,19 @@ jobs:
         choco install innosetup -y
         Write-Host "Inno Setup installed successfully"
         
+    - name: Download Visual C++ Redistributable
+      run: |
+        $url = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+        $output = "installer\vc_redist.x64.exe"
+        Write-Host "Downloading Visual C++ Redistributable from $url"
+        try {
+          Invoke-WebRequest -Uri $url -OutFile $output -TimeoutSec 300
+          Write-Host "VC Redistributable downloaded successfully"
+        } catch {
+          Write-Host "Failed to download VC Redistributable: $_"
+          exit 1
+        }
+        
     - name: Create installer directory structure
       run: |
         if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }

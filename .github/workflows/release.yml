@@ -1,4 +1,4 @@
-name: Release Build
+name: Multi-Platform Release Build
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
 
 jobs:
   build-android-release:
-    name: Build Signed Android App Bundle
+    name: Build Android AAB
     runs-on: ubuntu-latest
     
     steps:
@@ -86,7 +86,7 @@ jobs:
           core.setOutput('upload_url', release.data.upload_url);
           return release.data;
         
-    - name: Upload Release Asset
+    - name: Upload Android AAB
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -165,7 +165,7 @@ jobs:
           core.setOutput('upload_url', release.data.upload_url);
           return release.data;
         
-    - name: Upload Release Asset
+    - name: Upload macOS DMG
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -173,4 +173,98 @@ jobs:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
         asset_path: LINKa-napishi-${{ steps.version.outputs.version }}.dmg
         asset_name: LINKa-napishi-${{ steps.version.outputs.version }}.dmg
+        asset_content_type: application/octet-stream
+
+  build-windows-release:
+    name: Build Windows MSI
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Build Windows app
+      run: flutter build windows --release
+      
+    - name: Install Inno Setup via Chocolatey
+      run: |
+        Write-Host "Installing Inno Setup via Chocolatey..."
+        choco install innosetup -y
+        Write-Host "Inno Setup installed successfully"
+        
+    - name: Download Visual C++ Redistributable
+      run: |
+        $url = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+        $output = "installer\vc_redist.x64.exe"
+        Write-Host "Downloading Visual C++ Redistributable from $url"
+        try {
+          Invoke-WebRequest -Uri $url -OutFile $output -TimeoutSec 300
+          Write-Host "VC Redistributable downloaded successfully"
+        } catch {
+          Write-Host "Failed to download VC Redistributable: $_"
+          exit 1
+        }
+        
+    - name: Create installer directory structure
+      run: |
+        if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
+        mkdir dist
+        
+    - name: Compile Inno Setup script
+      run: |
+        echo "Compiling Inno Setup script..."
+        $isccPath = "C:\ProgramData\chocolatey\lib\innosetup\tools\ISCC.exe"
+        if (-not (Test-Path $isccPath)) {
+          $isccPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+        }
+        if (-not (Test-Path $isccPath)) {
+          echo "❌ Inno Setup compiler not found"
+          exit 1
+        }
+        & $isccPath installer\linka_setup.iss
+        if ($LASTEXITCODE -ne 0) {
+          echo "❌ Inno Setup compilation failed"
+          exit 1
+        }
+        echo "✅ Inno Setup installer created successfully"
+        dir installer\dist
+        
+    - name: Extract version from tag
+      id: version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+        
+    - name: Get Release
+      id: get_release
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const release = await github.rest.repos.getReleaseByTag({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            tag: context.ref.replace('refs/tags/', '')
+          });
+          core.setOutput('upload_url', release.data.upload_url);
+          return release.data;
+        
+    - name: Upload Windows MSI
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_release.outputs.upload_url }}
+        asset_path: installer/dist/LINKa-napishi-4.0.0-setup.exe
+        asset_name: LINKa-napishi-${{ steps.version.outputs.version }}-setup.exe
         asset_content_type: application/octet-stream

@@ -83,6 +83,7 @@ jobs:
             repo: context.repo.repo,
             tag: context.ref.replace('refs/tags/', '')
           });
+          core.setOutput('upload_url', release.data.upload_url);
           return release.data;
         
     - name: Upload Release Asset

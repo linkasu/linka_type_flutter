@@ -46,9 +46,24 @@ class ApiClient {
         '$baseUrl$endpoint',
       ).replace(queryParameters: queryParams);
 
-      developer.log('Отправляю $method запрос на: $uri');
-      if (body != null) {
-        developer.log('Тело запроса: ${jsonEncode(body)}');
+      // Специальное логирование для auth endpoints
+      final isAuthEndpoint = _isAuthEndpoint(endpoint);
+      if (isAuthEndpoint) {
+        developer.log('=== API AUTH REQUEST ===');
+        developer.log('Method: $method');
+        developer.log('Endpoint: $endpoint');
+        developer.log('Full URL: $uri');
+        developer.log('Headers: $headers');
+        if (body != null) {
+          // Маскируем чувствительные данные
+          final maskedBody = _maskSensitiveData(body);
+          developer.log('Request body: ${jsonEncode(maskedBody)}');
+        }
+      } else {
+        developer.log('Отправляю $method запрос на: $uri');
+        if (body != null) {
+          developer.log('Тело запроса: ${jsonEncode(body)}');
+        }
       }
 
       http.Response response;
@@ -78,15 +93,37 @@ class ApiClient {
           throw Exception('Unsupported HTTP method: $method');
       }
 
-      developer.log('Получен ответ: ${response.statusCode} - ${response.body}');
-      
-      // Детальное логирование ошибок
-      if (response.statusCode >= 400) {
-        developer.log('HTTP ERROR ${response.statusCode}: ${response.body}');
-        developer.log('Request URL: $uri');
-        developer.log('Request Headers: $headers');
-        if (body != null) {
-          developer.log('Request Body: ${jsonEncode(body)}');
+      // Специальное логирование для auth endpoints
+      if (isAuthEndpoint) {
+        developer.log('=== API AUTH RESPONSE ===');
+        developer.log('Status Code: ${response.statusCode}');
+        developer.log('Response Body: ${response.body}');
+        developer.log('Response Headers: ${response.headers}');
+        
+        if (response.statusCode >= 400) {
+          developer.log('=== API AUTH ERROR ===');
+          developer.log('Error Status: ${response.statusCode}');
+          developer.log('Error Body: ${response.body}');
+          developer.log('Request URL: $uri');
+          developer.log('Request Headers: $headers');
+          if (body != null) {
+            final maskedBody = _maskSensitiveData(body);
+            developer.log('Request Body: ${jsonEncode(maskedBody)}');
+          }
+        } else {
+          developer.log('=== API AUTH SUCCESS ===');
+        }
+      } else {
+        developer.log('Получен ответ: ${response.statusCode} - ${response.body}');
+        
+        // Детальное логирование ошибок
+        if (response.statusCode >= 400) {
+          developer.log('HTTP ERROR ${response.statusCode}: ${response.body}');
+          developer.log('Request URL: $uri');
+          developer.log('Request Headers: $headers');
+          if (body != null) {
+            developer.log('Request Body: ${jsonEncode(body)}');
+          }
         }
       }
       
@@ -145,34 +182,50 @@ class ApiClient {
   }
 
   Future<void> _attemptAutoRelogin() async {
+    developer.log('=== AUTO RELOGIN START ===');
+    
     try {
       final refreshToken = await TokenManager.getRefreshToken();
       if (refreshToken == null || refreshToken.isEmpty) {
+        developer.log('ERROR: No refresh token available for auto relogin');
         throw AuthenticationException('No refresh token available');
       }
 
+      developer.log('Refresh token found, length: ${refreshToken.length}');
       developer.log('Пытаюсь обновить токен автоматически');
 
       // Создаем запрос напрямую без использования ApiClient
       final request = {'refreshToken': refreshToken};
       final uri = Uri.parse('$baseUrl/refresh-token');
+      
+      developer.log('Auto relogin URL: $uri');
+      developer.log('Request body: ${jsonEncode(_maskSensitiveData(request))}');
 
       final response = await http.post(
         uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(request),
       );
+      
+      developer.log('Auto relogin response status: ${response.statusCode}');
+      developer.log('Auto relogin response body: ${response.body}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        developer.log('Auto relogin response successful, parsing data');
         final responseData = jsonDecode(response.body) as Map<String, dynamic>;
         final loginResponse = LoginResponse.fromJson(responseData);
 
+        developer.log('New token length: ${loginResponse.token.length}');
+        developer.log('New refresh token present: ${loginResponse.refreshToken != null}');
+
         // Проверяем, что токен действительно получен
         if (loginResponse.token.isEmpty) {
+          developer.log('ERROR: Empty token received from auto relogin');
           throw AuthenticationException(
               'Failed to refresh token: empty token received');
         }
 
+        developer.log('Saving new tokens');
         await TokenManager.saveToken(loginResponse.token);
         if (loginResponse.refreshToken != null &&
             loginResponse.refreshToken!.isNotEmpty) {
@@ -182,11 +235,16 @@ class ApiClient {
         // Дополнительная проверка сохранения токена
         final savedToken = await TokenManager.getToken();
         if (savedToken != loginResponse.token) {
+          developer.log('ERROR: Token was not saved correctly after auto relogin');
           throw AuthenticationException('Failed to save refreshed token');
         }
 
-        developer.log('Токен успешно обновлен автоматически');
+        developer.log('=== AUTO RELOGIN SUCCESS ===');
       } else {
+        developer.log('=== AUTO RELOGIN ERROR ===');
+        developer.log('Error status: ${response.statusCode}');
+        developer.log('Error body: ${response.body}');
+        
         final errorBody = response.body.isNotEmpty
             ? jsonDecode(response.body) as Map<String, dynamic>
             : <String, dynamic>{};
@@ -194,7 +252,9 @@ class ApiClient {
             'Failed to refresh token: ${response.statusCode} - ${errorBody['message'] ?? 'Unknown error'}');
       }
     } catch (e) {
-      developer.log('Ошибка при автоматическом обновлении токена: $e');
+      developer.log('=== AUTO RELOGIN EXCEPTION ===');
+      developer.log('Exception type: ${e.runtimeType}');
+      developer.log('Exception message: $e');
 
       // Обрабатываем ошибку аутентификации
       AuthErrorHandler.handleAuthError(e);
@@ -206,15 +266,21 @@ class ApiClient {
   Future<Map<String, dynamic>> _retryRequest(
     http.BaseRequest originalRequest,
   ) async {
+    developer.log('=== RETRY REQUEST START ===');
+    developer.log('Original method: ${originalRequest.method}');
+    developer.log('Original URL: ${originalRequest.url}');
+    
     final headers = await _getHeaders();
     final uri = originalRequest.url;
 
     http.Response response;
     switch (originalRequest.method.toUpperCase()) {
       case 'GET':
+        developer.log('Retrying GET request');
         response = await http.get(uri, headers: headers);
         break;
       case 'POST':
+        developer.log('Retrying POST request');
         response = await http.post(
           uri,
           headers: headers,
@@ -222,6 +288,7 @@ class ApiClient {
         );
         break;
       case 'PUT':
+        developer.log('Retrying PUT request');
         response = await http.put(
           uri,
           headers: headers,
@@ -229,12 +296,16 @@ class ApiClient {
         );
         break;
       case 'DELETE':
+        developer.log('Retrying DELETE request');
         response = await http.delete(uri, headers: headers);
         break;
       default:
         throw Exception('Unsupported HTTP method: ${originalRequest.method}');
     }
 
+    developer.log('Retry response status: ${response.statusCode}');
+    developer.log('=== RETRY REQUEST END ===');
+    
     return _handleResponse(response);
   }
 
@@ -269,5 +340,43 @@ class ApiClient {
   Future<Map<String, dynamic>> delete(String endpoint) async {
     final response = await _makeRequest('DELETE', endpoint);
     return _handleResponse(response);
+  }
+
+  // Проверяет, является ли endpoint аутентификационным
+  bool _isAuthEndpoint(String endpoint) {
+    final authEndpoints = [
+      '/login',
+      '/register',
+      '/verify-email',
+      '/reset-password',
+      '/reset-password/verify',
+      '/reset-password/confirm',
+      '/refresh-token',
+      '/profile',
+    ];
+    return authEndpoints.any((authEndpoint) => endpoint.startsWith(authEndpoint));
+  }
+
+  // Маскирует чувствительные данные в теле запроса
+  Map<String, dynamic> _maskSensitiveData(Map<String, dynamic> body) {
+    final maskedBody = Map<String, dynamic>.from(body);
+    
+    // Маскируем пароли
+    if (maskedBody.containsKey('password')) {
+      maskedBody['password'] = '***MASKED***';
+    }
+    if (maskedBody.containsKey('newPassword')) {
+      maskedBody['newPassword'] = '***MASKED***';
+    }
+    
+    // Маскируем токены
+    if (maskedBody.containsKey('refreshToken')) {
+      final token = maskedBody['refreshToken'] as String?;
+      if (token != null && token.isNotEmpty) {
+        maskedBody['refreshToken'] = '${token.substring(0, 8)}...***MASKED***';
+      }
+    }
+    
+    return maskedBody;
   }
 }

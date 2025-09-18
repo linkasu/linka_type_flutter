@@ -110,6 +110,125 @@ jobs:
         name: linux-build
         path: build/linux/x64/release/bundle/
 
+  build-deb:
+    name: Build DEB Package
+    runs-on: ubuntu-latest
+    needs: build-linux
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+        
+    - name: Cache APT packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt
+        key: ${{ runner.os }}-apt-${{ hashFiles('**/pubspec.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-
+          
+    - name: Install Linux dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+        sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev
+        sudo apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
+        sudo apt-get install -y gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl
+        
+    - name: Cache Dart dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          .dart_tool
+        key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-dart-
+          
+    - name: Cache Linux build
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/linux
+        key: ${{ runner.os }}-linux-${{ hashFiles('**/pubspec.lock', '**/linux/**') }}
+        restore-keys: |
+          ${{ runner.os }}-linux-
+          
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Build Linux app
+      run: flutter build linux --release
+      
+    - name: Download Linux build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: linux-build
+        path: build/linux/x64/release/bundle/
+      
+    - name: Install fpm for DEB packaging
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ruby ruby-dev build-essential
+        sudo gem install fpm
+        
+    - name: Create DEB package
+      run: |
+        # Создаем структуру для DEB пакета
+        mkdir -p deb-package/usr/share/linka-napishi
+        mkdir -p deb-package/usr/share/applications
+        mkdir -p deb-package/usr/share/pixmaps
+        mkdir -p deb-package/usr/bin
+        
+        # Копируем файлы приложения
+        cp -r build/linux/x64/release/bundle/* deb-package/usr/share/linka-napishi/
+        
+        # Создаем исполняемый файл
+        cat > deb-package/usr/bin/linka-napishi << 'EOF'
+        #!/bin/bash
+        cd /usr/share/linka-napishi
+        exec ./linka_type_flutter "$@"
+        EOF
+        chmod +x deb-package/usr/bin/linka-napishi
+        
+        # Создаем .desktop файл
+        cat > deb-package/usr/share/applications/linka-napishi.desktop << 'EOF'
+        [Desktop Entry]
+        Version=1.0
+        Type=Application
+        Name=LINKa напиши
+        Comment=Приложение для набора текста с поддержкой TTS
+        Exec=linka-napishi
+        Icon=linka-napishi
+        Terminal=false
+        Categories=Office;TextEditor;
+        EOF
+        
+        # Копируем иконку
+        cp assets/app_icon.png deb-package/usr/share/pixmaps/linka-napishi.png
+        
+        # Создаем DEB пакет
+        fpm -s dir -t deb -n linka-napishi -v 4.0.9 --iteration 1 \
+          --description "LINKa напиши - приложение для набора текста с поддержкой TTS" \
+          --maintainer "aacidov" \
+          --url "https://github.com/aacidov/linka_type_flutter" \
+          --category office \
+          --license "MIT" \
+          -C deb-package .
+          
+    - name: Upload DEB package
+      uses: actions/upload-artifact@v4
+      with:
+        name: deb-package
+        path: linka-napishi_4.0.9-1_amd64.deb
+
   build-windows:
     name: Build Windows
     runs-on: windows-latest

@@ -65,8 +65,8 @@ jobs:
     - name: Extract version from tag
       id: version
       run: |
-        VERSION=${GITHUB_REF#refs/tags/v}
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        $VERSION = $env:GITHUB_REF -replace 'refs/tags/v', ''
+        echo "version=$VERSION" >> $env:GITHUB_OUTPUT
         echo "Version: $VERSION"
         
     - name: Rename AAB with version
@@ -120,8 +120,8 @@ jobs:
     - name: Extract version from tag
       id: version
       run: |
-        VERSION=${GITHUB_REF#refs/tags/v}
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        $VERSION = $env:GITHUB_REF -replace 'refs/tags/v', ''
+        echo "version=$VERSION" >> $env:GITHUB_OUTPUT
         echo "Version: $VERSION"
         
     - name: Create DMG directory structure
@@ -242,8 +242,8 @@ jobs:
     - name: Extract version from tag
       id: version
       run: |
-        VERSION=${GITHUB_REF#refs/tags/v}
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        $VERSION = $env:GITHUB_REF -replace 'refs/tags/v', ''
+        echo "version=$VERSION" >> $env:GITHUB_OUTPUT
         echo "Version: $VERSION"
         
     - name: Get Release

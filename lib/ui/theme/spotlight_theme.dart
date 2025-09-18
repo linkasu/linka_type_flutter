@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 class SpotlightTheme {
-  static const Color backgroundColor = Colors.black;
-  static const Color textColor = Colors.white;
-  static const Color borderColor = Colors.white;
-  static const Color hintColor = Colors.white54;
-  static const Color buttonBackgroundColor = Colors.white;
-  static const Color buttonForegroundColor = Colors.black;
+  // Используем цвета из предоставленной схемы
+  static const Color backgroundColor =
+      Color(0xFF000000); // spotlight_background
+  static const Color textColor = Color(0xFFFFFFFF); // spotlight_text
+  static const Color borderColor = Color(0xFFFBCC30); // colorAccent для границ
+  static const Color hintColor = Color(0x66FFFFFF); // полупрозрачный белый
+  static const Color buttonBackgroundColor = Color(0xFFFBCC30); // colorAccent
+  static const Color buttonForegroundColor =
+      Color(0xFF000000); // черный текст на желтом фоне
 
   static const double borderWidth = 2;
   static const double borderRadius = 8;

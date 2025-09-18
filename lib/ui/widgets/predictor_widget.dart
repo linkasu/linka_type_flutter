@@ -82,7 +82,7 @@ class _PredictorWidgetState extends State<PredictorWidget> {
   }
 
   Color _getButtonColor() {
-    if (widget.register == null) return AppTheme.secondaryColor;
+    if (widget.register == null) return AppTheme.primaryDarkColor;
     return widget.register! ? AppTheme.accentColor : AppTheme.primaryColor;
   }
 

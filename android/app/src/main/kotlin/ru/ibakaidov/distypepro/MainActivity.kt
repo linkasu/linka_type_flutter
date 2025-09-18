@@ -1,4 +1,4 @@
-package su.linka.type
+package ru.ibakaidov.distypepro
 
 import io.flutter.embedding.android.FlutterActivity
 

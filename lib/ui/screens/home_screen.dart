@@ -6,6 +6,7 @@ import '../../services/data_refresh_service.dart';
 import '../../services/data_manager.dart';
 import '../../services/analytics_manager.dart';
 import '../../services/analytics_events.dart';
+import '../../services/github_release/github_release.dart';
 import '../../api/api.dart';
 import '../../offline/models/sync_state.dart';
 import '../theme/app_theme.dart';
@@ -23,7 +24,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with UpdateCheckerMixin {
   final TTSService _ttsService = TTSService.instance;
   final StatementService _statementService = StatementService();
   late final DataManager _dataManager;
@@ -83,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Запускаем периодическую проверку каждые 5 секунд
     _refreshService.startPeriodicRefresh();
-
   }
 
   void _onCategoriesUpdated(List<Category> newCategories) {
@@ -108,13 +108,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Показываем уведомление о обновлении
       _showUpdateNotification('Категории обновлены');
-
     }
   }
 
   void _onStatementsUpdated(List<Statement> newStatements) {
     if (!mounted) return;
-
 
     // Проверяем, изменились ли фразы
     final hasChanges = !_areStatementsEqual(_statements, newStatements);
@@ -126,9 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Показываем уведомление о обновлении
       _showUpdateNotification('Фразы обновлены');
-
-    } else {
-    }
+    } else {}
   }
 
   void _onCategoryStatementsUpdated(
@@ -156,13 +152,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
       _showUpdateNotification(
           'Фразы в категории "${category.title}" обновлены');
-
     }
   }
 
   void _onSyncStateChanged(SyncState syncState) {
     if (!mounted) return;
-
 
     // Обновляем UI в зависимости от состояния синхронизации
     if (syncState.status == SyncStatus.synced &&
@@ -236,7 +230,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _statements = statements;
         _isLoading = false;
       });
-      
     } catch (e) {
       setState(() {
         _isLoading = false;

@@ -67,6 +67,12 @@ dependencies:
   # Crypto for MD5 hashing
   crypto: ^3.0.3
 
+  # Package info for version detection
+  package_info_plus: ^8.0.0
+
+  # URL launcher for opening browser
+  url_launcher: ^6.3.0
+
 
 
 dev_dependencies:

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 import '../../services/tts_service.dart';
 import '../../services/tts_cache_service.dart';
+import '../../services/github_release/github_release.dart';
 import '../../api/api.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shortcuts_dialog.dart';
@@ -40,6 +41,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   double _currentCacheSizeMB = 0;
   int _cacheFileCount = 0;
 
+  // Update checker
+  GitHubReleaseManager? _releaseManager;
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     _setupTTSEvents();
     _loadUserInfo();
     _loadCacheSettings();
+    _initializeUpdateChecker();
   }
 
   @override
@@ -78,6 +83,14 @@ class _SettingsScreenState extends State<SettingsScreen>
       });
     } catch (e) {
       // Игнорируем ошибки загрузки настроек кеша
+    }
+  }
+
+  Future<void> _initializeUpdateChecker() async {
+    try {
+      _releaseManager = await GitHubReleaseManager.create();
+    } catch (e) {
+      print('Ошибка при инициализации проверки обновлений: $e');
     }
   }
 
@@ -837,6 +850,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                       );
                     },
                   ),
+                  if (_releaseManager != null) ...[
+                    const Divider(),
+                    _releaseManager!.createUpdateCheckWidget(),
+                  ],
                 ],
               ),
             ),

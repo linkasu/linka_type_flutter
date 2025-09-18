@@ -4,7 +4,7 @@ import 'github_release_service.dart';
 import 'widgets/update_dialog.dart';
 
 class GitHubReleaseManager {
-  static const String _defaultOwner = 'aacidov';
+  static const String _defaultOwner = 'linkasu';
   static const String _defaultRepo = 'linka_type_flutter';
 
   late final GitHubReleaseService _releaseService;

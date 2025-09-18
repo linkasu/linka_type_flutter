@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'models/github_release.dart';
+import 'dart:developer' as developer;
 
 class GitHubReleaseService {
   static const String _baseUrl = 'https://api.github.com';
@@ -22,32 +23,57 @@ class GitHubReleaseService {
 
   /// Проверяет, есть ли новые релизы
   Future<GitHubRelease?> checkForUpdates() async {
+    developer.log('=== GITHUB RELEASE CHECK START ===');
+    developer.log('Owner: $owner');
+    developer.log('Repo: $repo');
+    developer.log('Current version: $currentVersion');
+    
     try {
       // Проверяем, нужно ли выполнять проверку сейчас
       if (!await _shouldCheckForUpdates()) {
+        developer.log('Skipping update check - too soon since last check');
         return null;
       }
 
+      developer.log('Fetching releases from GitHub API');
       final releases = await _fetchReleases();
-      if (releases.isEmpty) return null;
+      developer.log('Found ${releases.length} releases');
+      
+      if (releases.isEmpty) {
+        developer.log('No releases found');
+        return null;
+      }
 
       // Ищем стабильный релиз новее текущей версии
-      final latestRelease = releases
-          .where((release) => release.isStable)
+      final stableReleases = releases.where((release) => release.isStable).toList();
+      developer.log('Found ${stableReleases.length} stable releases');
+      
+      final latestRelease = stableReleases
           .where((release) => release.isNewerThan(currentVersion))
           .firstOrNull;
 
       if (latestRelease != null) {
+        developer.log('Found newer release: ${latestRelease.tagName}');
+        
         // Проверяем, не пропускал ли пользователь эту версию
         final skipVersion = await _getSkippedVersion();
         if (skipVersion != latestRelease.tagName) {
+          developer.log('Release not skipped, showing update dialog');
           await _updateLastCheckTime();
           return latestRelease;
+        } else {
+          developer.log('Release ${latestRelease.tagName} was skipped by user');
         }
+      } else {
+        developer.log('No newer stable releases found');
       }
 
+      developer.log('=== GITHUB RELEASE CHECK END - NO UPDATE ===');
       return null;
     } catch (e) {
+      developer.log('=== GITHUB RELEASE CHECK ERROR ===');
+      developer.log('Error type: ${e.runtimeType}');
+      developer.log('Error message: $e');
       print('Ошибка при проверке обновлений: $e');
       return null;
     }
@@ -56,6 +82,8 @@ class GitHubReleaseService {
   /// Получает список релизов с GitHub API
   Future<List<GitHubRelease>> _fetchReleases() async {
     final url = Uri.parse('$_baseUrl/repos/$owner/$repo/releases');
+    developer.log('GitHub API URL: $url');
+    
     final response = await http.get(
       url,
       headers: {
@@ -64,10 +92,14 @@ class GitHubReleaseService {
       },
     );
 
+    developer.log('GitHub API response status: ${response.statusCode}');
+    
     if (response.statusCode == 200) {
       final List<dynamic> jsonData = json.decode(response.body);
+      developer.log('Successfully parsed ${jsonData.length} releases from GitHub API');
       return jsonData.map((json) => GitHubRelease.fromJson(json)).toList();
     } else {
+      developer.log('GitHub API error response: ${response.body}');
       throw Exception('Не удалось получить релизы: ${response.statusCode}');
     }
   }

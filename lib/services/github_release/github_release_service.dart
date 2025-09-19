@@ -27,7 +27,7 @@ class GitHubReleaseService {
     developer.log('Owner: $owner');
     developer.log('Repo: $repo');
     developer.log('Current version: $currentVersion');
-    
+
     try {
       // Проверяем, нужно ли выполнять проверку сейчас
       if (!await _shouldCheckForUpdates()) {
@@ -38,23 +38,24 @@ class GitHubReleaseService {
       developer.log('Fetching releases from GitHub API');
       final releases = await _fetchReleases();
       developer.log('Found ${releases.length} releases');
-      
+
       if (releases.isEmpty) {
         developer.log('No releases found');
         return null;
       }
 
       // Ищем стабильный релиз новее текущей версии
-      final stableReleases = releases.where((release) => release.isStable).toList();
+      final stableReleases =
+          releases.where((release) => release.isStable).toList();
       developer.log('Found ${stableReleases.length} stable releases');
-      
+
       final latestRelease = stableReleases
           .where((release) => release.isNewerThan(currentVersion))
           .firstOrNull;
 
       if (latestRelease != null) {
         developer.log('Found newer release: ${latestRelease.tagName}');
-        
+
         // Проверяем, не пропускал ли пользователь эту версию
         final skipVersion = await _getSkippedVersion();
         if (skipVersion != latestRelease.tagName) {
@@ -83,7 +84,7 @@ class GitHubReleaseService {
   Future<List<GitHubRelease>> _fetchReleases() async {
     final url = Uri.parse('$_baseUrl/repos/$owner/$repo/releases');
     developer.log('GitHub API URL: $url');
-    
+
     final response = await http.get(
       url,
       headers: {
@@ -93,10 +94,11 @@ class GitHubReleaseService {
     );
 
     developer.log('GitHub API response status: ${response.statusCode}');
-    
+
     if (response.statusCode == 200) {
       final List<dynamic> jsonData = json.decode(response.body);
-      developer.log('Successfully parsed ${jsonData.length} releases from GitHub API');
+      developer.log(
+          'Successfully parsed ${jsonData.length} releases from GitHub API');
       return jsonData.map((json) => GitHubRelease.fromJson(json)).toList();
     } else {
       developer.log('GitHub API error response: ${response.body}');

@@ -39,7 +39,8 @@ class OfflineData {
     return DateTime.now();
   }
 
-  static String _dateTimeToJson(DateTime dateTime) => dateTime.toIso8601String();
+  static String _dateTimeToJson(DateTime dateTime) =>
+      dateTime.toIso8601String();
 
   /// Создает пустой контейнер данных
   factory OfflineData.empty() => OfflineData(

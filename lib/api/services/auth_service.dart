@@ -12,20 +12,21 @@ class AuthService {
     developer.log('=== AUTH LOGIN START ===');
     developer.log('Email: $email');
     developer.log('Password length: ${password.length}');
-    
+
     try {
       final request = LoginRequest(email: email, password: password);
       developer.log('Отправляю запрос на логин');
-      
+
       final response = await _apiClient.post('/login', body: request.toJson());
       developer.log('Получен ответ от сервера, парсинг данных');
-      
+
       final loginResponse = LoginResponse.fromJson(response);
       developer.log('Login response parsed successfully');
       developer.log('User ID: ${loginResponse.user.id}');
       developer.log('User email: ${loginResponse.user.email}');
       developer.log('Token length: ${loginResponse.token.length}');
-      developer.log('Refresh token present: ${loginResponse.refreshToken != null}');
+      developer
+          .log('Refresh token present: ${loginResponse.refreshToken != null}');
 
       // Проверяем, что refresh token пришел
       if (loginResponse.refreshToken == null ||
@@ -61,21 +62,22 @@ class AuthService {
     developer.log('=== AUTH REGISTER START ===');
     developer.log('Email: $email');
     developer.log('Password length: ${password.length}');
-    
+
     try {
       final request = RegisterRequest(email: email, password: password);
       developer.log('Отправляю запрос на регистрацию');
-      
+
       final response =
           await _apiClient.post('/register', body: request.toJson());
       developer.log('Получен ответ от сервера, парсинг данных');
-      
+
       final registerResponse = RegisterResponse.fromJson(response);
       developer.log('Register response parsed successfully');
       developer.log('User ID: ${registerResponse.user.id}');
       developer.log('User email: ${registerResponse.user.email}');
       developer.log('Token length: ${registerResponse.token.length}');
-      developer.log('Refresh token present: ${registerResponse.refreshToken != null}');
+      developer.log(
+          'Refresh token present: ${registerResponse.refreshToken != null}');
 
       // Проверяем, что refresh token пришел
       if (registerResponse.refreshToken == null ||
@@ -116,15 +118,15 @@ class AuthService {
     developer.log('=== AUTH VERIFY EMAIL START ===');
     developer.log('Email: $email');
     developer.log('Code length: ${code.length}');
-    
+
     try {
       final request = VerifyEmailRequest(email: email, code: code);
       developer.log('Отправляю запрос на верификацию email');
-      
+
       final response =
           await _apiClient.post('/verify-email', body: request.toJson());
       developer.log('Получен ответ от сервера, парсинг данных');
-      
+
       final verifyResponse = VerifyEmailResponse.fromJson(response);
       developer.log('=== AUTH VERIFY EMAIL SUCCESS ===');
       return verifyResponse;
@@ -143,15 +145,15 @@ class AuthService {
   Future<ResetPasswordResponse> requestPasswordReset(String email) async {
     developer.log('=== AUTH RESET PASSWORD REQUEST START ===');
     developer.log('Email: $email');
-    
+
     try {
       final request = ResetPasswordRequest(email: email);
       developer.log('Отправляю запрос на сброс пароля');
-      
+
       final response =
           await _apiClient.post('/reset-password', body: request.toJson());
       developer.log('Получен ответ от сервера, парсинг данных');
-      
+
       final resetResponse = ResetPasswordResponse.fromJson(response);
       developer.log('=== AUTH RESET PASSWORD REQUEST SUCCESS ===');
       return resetResponse;
@@ -172,17 +174,17 @@ class AuthService {
     developer.log('=== AUTH VERIFY PASSWORD RESET OTP START ===');
     developer.log('Email: $email');
     developer.log('Code length: ${code.length}');
-    
+
     try {
       final request = ResetPasswordVerifyRequest(email: email, code: code);
       developer.log('Отправляю запрос на верификацию OTP для сброса пароля');
-      
+
       final response = await _apiClient.post(
         '/reset-password/verify',
         body: request.toJson(),
       );
       developer.log('Получен ответ от сервера, парсинг данных');
-      
+
       final verifyResponse = ResetPasswordVerifyResponse.fromJson(response);
       developer.log('=== AUTH VERIFY PASSWORD RESET OTP SUCCESS ===');
       return verifyResponse;
@@ -207,7 +209,7 @@ class AuthService {
     developer.log('Email: $email');
     developer.log('Code length: ${code.length}');
     developer.log('New password length: ${newPassword.length}');
-    
+
     try {
       final request = ResetPasswordConfirmRequest(
         email: email,
@@ -215,13 +217,13 @@ class AuthService {
         newPassword: newPassword,
       );
       developer.log('Отправляю запрос на подтверждение сброса пароля');
-      
+
       final response = await _apiClient.post(
         '/reset-password/confirm',
         body: request.toJson(),
       );
       developer.log('Получен ответ от сервера, парсинг данных');
-      
+
       final confirmResponse = ResetPasswordConfirmResponse.fromJson(response);
       developer.log('=== AUTH CONFIRM PASSWORD RESET SUCCESS ===');
       return confirmResponse;
@@ -267,7 +269,7 @@ class AuthService {
 
   Future<LoginResponse> refreshToken() async {
     developer.log('=== AUTH REFRESH TOKEN START ===');
-    
+
     try {
       final refreshToken = await TokenManager.getRefreshToken();
       if (refreshToken == null) {
@@ -282,11 +284,12 @@ class AuthService {
       final request = {'refreshToken': refreshToken};
       final response = await _apiClient.post('/refresh-token', body: request);
       developer.log('Получен ответ от сервера, парсинг данных');
-      
+
       final loginResponse = LoginResponse.fromJson(response);
       developer.log('Refresh response parsed successfully');
       developer.log('New token length: ${loginResponse.token.length}');
-      developer.log('New refresh token present: ${loginResponse.refreshToken != null}');
+      developer.log(
+          'New refresh token present: ${loginResponse.refreshToken != null}');
 
       // Проверяем, что токен действительно обновился
       if (loginResponse.token.isEmpty) {
@@ -315,7 +318,7 @@ class AuthService {
       developer.log('=== AUTH REFRESH TOKEN ERROR ===');
       developer.log('Error type: ${e.runtimeType}');
       developer.log('Error message: $e');
-      
+
       if (e is AuthenticationException) {
         // Обрабатываем ошибку аутентификации
         AuthErrorHandler.handleAuthError(e);
@@ -330,12 +333,12 @@ class AuthService {
 
   Future<ProfileResponse> getProfile() async {
     developer.log('=== AUTH GET PROFILE START ===');
-    
+
     try {
       developer.log('Отправляю запрос на получение профиля');
       final response = await _apiClient.get('/profile');
       developer.log('Получен ответ от сервера, парсинг данных');
-      
+
       final profileResponse = ProfileResponse.fromJson(response);
       developer.log('=== AUTH GET PROFILE SUCCESS ===');
       return profileResponse;

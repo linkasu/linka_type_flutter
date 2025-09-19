@@ -77,7 +77,7 @@ class _PresentationModeScreenState extends State<PresentationModeScreen>
       duration: const Duration(milliseconds: 0),
       vsync: this,
     );
-    
+
     // Устанавливаем анимацию в конечное состояние для первой фразы
     _slideController.value = 1.0;
   }

@@ -91,7 +91,8 @@ class OfflineManager {
     // Обновляем состояние синхронизации
     if (isOnline && wasOffline) {
       // Переход из оффлайн в онлайн
-      print('OfflineManager: Переход из оффлайн в онлайн - запуск принудительной синхронизации');
+      print(
+          'OfflineManager: Переход из оффлайн в онлайн - запуск принудительной синхронизации');
       _currentSyncState = _currentSyncState.copyWith(
         status: SyncStatus.syncing,
         isOnline: true,
@@ -147,7 +148,7 @@ class OfflineManager {
     } catch (e) {
       print('OfflineManager: Ошибка синхронизации: $e');
       print('OfflineManager: Stack trace: ${StackTrace.current}');
-      
+
       final pendingCount = await _operationService.getPendingOperationsCount();
       _currentSyncState = SyncState.error(
         message: e.toString(),
@@ -531,7 +532,8 @@ class OfflineManager {
   /// Принудительная синхронизация
   Future<void> forceSync() async {
     if (_isOfflineMode) {
-      print('OfflineManager: Принудительная синхронизация пропущена - режим оффлайн');
+      print(
+          'OfflineManager: Принудительная синхронизация пропущена - режим оффлайн');
       return;
     }
 

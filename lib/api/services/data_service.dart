@@ -13,7 +13,8 @@ class DataService {
     try {
       final response = await _apiClient.get('/statements');
       final List<dynamic> statementsJson = response['statements'] ?? [];
-      final statements = statementsJson.map((json) => Statement.fromJson(json)).toList();
+      final statements =
+          statementsJson.map((json) => Statement.fromJson(json)).toList();
       return statements;
     } on AuthenticationException catch (e) {
       AuthErrorHandler.handleAuthError(e);
@@ -93,7 +94,8 @@ class DataService {
     try {
       final response = await _apiClient.get('/categories');
       final List<dynamic> categoriesJson = response['categories'] ?? [];
-      final categories = categoriesJson.map((json) => Category.fromJson(json)).toList();
+      final categories =
+          categoriesJson.map((json) => Category.fromJson(json)).toList();
       return categories;
     } on AuthenticationException catch (e) {
       AuthErrorHandler.handleAuthError(e);

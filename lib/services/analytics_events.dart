@@ -85,7 +85,8 @@ class AnalyticsEvents {
   static const String presentationPhrasePlayed = 'presentation_phrase_played';
   static const String presentationPhraseSkipped = 'presentation_phrase_skipped';
   static const String presentationNavigation = 'presentation_navigation';
-  static const String presentationKeyboardShortcut = 'presentation_keyboard_shortcut';
+  static const String presentationKeyboardShortcut =
+      'presentation_keyboard_shortcut';
 
   // События уведомлений
   static const String notificationReceived = 'notification_received';

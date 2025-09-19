@@ -17,11 +17,9 @@ class SyncService {
     bool forceFullSync = false,
   }) async {
     try {
-      
       // Получаем текущие оффлайн данные
       final currentOfflineData =
           await _storageService.loadOfflineData() ?? OfflineData.empty();
-      
 
       if (forceFullSync || lastSyncTime == null) {
         return await _performFullSync();
@@ -36,7 +34,7 @@ class SyncService {
   /// Выполняет полную синхронизацию
   Future<OfflineData> _performFullSync() async {
     final categories = await _dataService.getCategories();
-    
+
     final statements = await _dataService.getStatements();
 
     final offlineData = OfflineData(

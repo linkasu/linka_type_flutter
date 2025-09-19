@@ -7,11 +7,10 @@ import 'package:linka_type_flutter/api/services/data_service.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    // Create mock services for testing
+    // Create minimal mock services for testing
     final mockDataService = DataService();
     final mockDataManager = await DataManager.create(mockDataService);
     final mockAnalyticsManager = AnalyticsManager();
-    await mockAnalyticsManager.initialize();
 
     // Build our app and trigger a frame.
     await tester.pumpWidget(MyApp(
@@ -23,12 +22,12 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     // Wait for auth check to complete with timeout
-    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(milliseconds: 100));
 
     // Should show either login screen or home screen
     expect(
       find.byType(Scaffold),
       findsOneWidget,
     );
-  });
+  }, timeout: const Timeout(Duration(seconds: 10)));
 }

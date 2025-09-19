@@ -46,7 +46,7 @@ jobs:
       run: flutter analyze || true
       
     - name: Run tests
-      run: flutter test || true
+      run: flutter test --timeout=30s || true
 
   build-linux:
     name: Build Linux

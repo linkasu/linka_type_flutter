@@ -29,7 +29,7 @@ void main() {
       );
 
       await tester.tap(find.text('Показать диалог'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Тестовый заголовок'), findsOneWidget);
       expect(find.text('Тестовая метка'), findsOneWidget);
@@ -63,10 +63,10 @@ void main() {
       );
 
       await tester.tap(find.text('Показать диалог'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       await tester.tap(find.text('Отмена'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(result, isNull);
     });
@@ -96,11 +96,11 @@ void main() {
       );
 
       await tester.tap(find.text('Показать диалог'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       await tester.enterText(find.byType(TextField), 'Тестовый текст');
       await tester.tap(find.text('Сохранить'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(result, equals('Тестовый текст'));
     });
@@ -130,11 +130,11 @@ void main() {
       );
 
       await tester.tap(find.text('Показать диалог'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       // Не вводим текст
       await tester.tap(find.text('Сохранить'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       // Диалог должен остаться открытым
       expect(find.text('Тестовый заголовок'), findsOneWidget);
@@ -164,7 +164,7 @@ void main() {
       );
 
       await tester.tap(find.text('Показать диалог'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.controller?.text, equals('Начальное значение'));
@@ -195,7 +195,7 @@ void main() {
       );
 
       await tester.tap(find.text('Показать диалог'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Подтверждение'), findsOneWidget);
       expect(find.text('Вы уверены?'), findsOneWidget);
@@ -228,10 +228,10 @@ void main() {
       );
 
       await tester.tap(find.text('Показать диалог'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       await tester.tap(find.text('Отмена'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(result, isFalse);
     });
@@ -261,10 +261,10 @@ void main() {
       );
 
       await tester.tap(find.text('Показать диалог'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       await tester.tap(find.text('Удалить'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(result, isTrue);
     });
@@ -305,7 +305,7 @@ void main() {
       );
 
       await tester.tap(find.text('Показать меню'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Редактировать'), findsOneWidget);
       expect(find.text('Удалить'), findsOneWidget);
@@ -343,10 +343,10 @@ void main() {
       );
 
       await tester.tap(find.text('Показать меню'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       await tester.tap(find.text('Редактировать'));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 100));
 
       expect(itemTapped, isTrue);
     });

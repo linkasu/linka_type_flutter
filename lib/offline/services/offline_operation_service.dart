@@ -1,7 +1,5 @@
 import 'dart:async';
 import '../../api/services/data_service.dart';
-import '../../api/models/statement.dart';
-import '../../api/models/category.dart';
 import '../models/offline_operation.dart';
 import 'json_storage_service.dart';
 
@@ -11,10 +9,10 @@ class OfflineOperationService {
   final JsonStorageService _storageService;
 
   /// Максимальное количество попыток синхронизации операции
-  static const int _maxRetryAttempts = 3;
+  // static const int _maxRetryAttempts = 3;
 
   /// Таймаут между попытками в секундах
-  static const int _retryDelaySeconds = 5;
+  // static const int _retryDelaySeconds = 5;
 
   OfflineOperationService(this._dataService, this._storageService);
 
@@ -140,7 +138,7 @@ class OfflineOperationService {
     final statement = await _dataService.createStatement(title, categoryId);
 
     // Обновляем entityId операции с реальным ID созданной фразы
-    final updatedOperation = operation.copyWith(entityId: statement.id);
+    // final updatedOperation = operation.copyWith(entityId: statement.id);
     await _updateOperationEntityId(operation.id, statement.id);
   }
 
@@ -196,18 +194,18 @@ class OfflineOperationService {
   }
 
   /// Повторяет синхронизацию операции с задержкой
-  Future<void> _retryOperation(OfflineOperation operation) async {
-    if (operation.lastSyncAttempt != null) {
-      final timeSinceLastAttempt =
-          DateTime.now().difference(operation.lastSyncAttempt!);
-      if (timeSinceLastAttempt.inSeconds < _retryDelaySeconds) {
-        return; // Слишком рано для повторной попытки
-      }
-    }
+  // Future<void> _retryOperation(OfflineOperation operation) async {
+  //   if (operation.lastSyncAttempt != null) {
+  //     final timeSinceLastAttempt =
+  //         DateTime.now().difference(operation.lastSyncAttempt!);
+  //     if (timeSinceLastAttempt.inSeconds < _retryDelaySeconds) {
+  //       return; // Слишком рано для повторной попытки
+  //     }
+  //   }
 
-    await Future.delayed(Duration(seconds: _retryDelaySeconds));
-    await _syncOperation(operation);
-  }
+  //   await Future.delayed(Duration(seconds: _retryDelaySeconds));
+  //   await _syncOperation(operation);
+  // }
 
   /// Получает количество ожидающих операций
   Future<int> getPendingOperationsCount() async {

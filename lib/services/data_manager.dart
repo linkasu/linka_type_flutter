@@ -8,10 +8,10 @@ import '../offline/models/sync_state.dart';
 
 /// Единый менеджер данных, обеспечивающий прозрачную работу в онлайн/оффлайн режимах
 class DataManager {
-  final DataService _dataService;
+  // final DataService _dataService;
   late final OfflineManager _offlineManager;
 
-  DataManager._(this._dataService);
+  DataManager._(DataService dataService);
 
   /// Создает и инициализирует DataManager
   static Future<DataManager> create(DataService dataService) async {

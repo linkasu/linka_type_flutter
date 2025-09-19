@@ -272,8 +272,8 @@ void main() {
     testWidgets('showContextMenu отображает контекстное меню', (
       WidgetTester tester,
     ) async {
-      bool item1Tapped = false;
-      bool item2Tapped = false;
+      // bool item1Tapped = false;
+      // bool item2Tapped = false;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -287,12 +287,12 @@ void main() {
                       ContextMenuItem(
                         icon: const Icon(Icons.edit),
                         title: 'Редактировать',
-                        onTap: () => item1Tapped = true,
+                        onTap: () => print('Item 1 tapped'),
                       ),
                       ContextMenuItem(
                         icon: const Icon(Icons.delete),
                         title: 'Удалить',
-                        onTap: () => item2Tapped = true,
+                        onTap: () => print('Item 2 tapped'),
                       ),
                     ],
                   );

@@ -4,7 +4,7 @@ import '../offline/services/offline_manager.dart';
 import '../offline/models/sync_state.dart';
 
 class DataRefreshService {
-  final DataService _dataService = DataService();
+  // final DataService _dataService = DataService();
   final OfflineManager _offlineManager;
 
   Timer? _refreshTimer;
@@ -17,7 +17,7 @@ class DataRefreshService {
   Function(List<Category>)? _onCategoriesUpdated;
   Function(List<Statement>)? _onStatementsUpdated;
   Function(Category?, List<Statement>)? _onCategoryStatementsUpdated;
-  Function(bool)? _onOfflineModeChanged;
+  // Function(bool)? _onOfflineModeChanged;
   Function(SyncState)? _onSyncStateChanged;
 
   DataRefreshService(this._offlineManager) {
@@ -37,7 +37,7 @@ class DataRefreshService {
     _onCategoriesUpdated = onCategoriesUpdated;
     _onStatementsUpdated = onStatementsUpdated;
     _onCategoryStatementsUpdated = onCategoryStatementsUpdated;
-    _onOfflineModeChanged = onOfflineModeChanged;
+    // _onOfflineModeChanged = onOfflineModeChanged;
     _onSyncStateChanged = onSyncStateChanged;
   }
 

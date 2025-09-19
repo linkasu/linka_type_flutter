@@ -43,10 +43,10 @@ jobs:
       run: dart format --set-exit-if-changed .
       
     - name: Analyze project source
-      run: flutter analyze || true
+      run: flutter analyze
       
     - name: Run tests
-      run: flutter test --timeout=30s || true
+      run: flutter test --timeout=30s
 
   build-linux:
     name: Build Linux

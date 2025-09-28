@@ -197,7 +197,7 @@ class ApiClient {
       developer.log('Пытаюсь обновить токен автоматически');
 
       // Создаем запрос напрямую без использования ApiClient
-      final request = {'refreshToken': refreshToken};
+      final request = {'refresh_token': refreshToken};
       final uri = Uri.parse('$baseUrl/refresh-token');
 
       developer.log('Auto relogin URL: $uri');
@@ -375,10 +375,20 @@ class ApiClient {
     }
 
     // Маскируем токены
+    String? refreshToken;
     if (maskedBody.containsKey('refreshToken')) {
-      final token = maskedBody['refreshToken'] as String?;
-      if (token != null && token.isNotEmpty) {
-        maskedBody['refreshToken'] = '${token.substring(0, 8)}...***MASKED***';
+      refreshToken = maskedBody['refreshToken'] as String?;
+    } else if (maskedBody.containsKey('refresh_token')) {
+      refreshToken = maskedBody['refresh_token'] as String?;
+    }
+
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      final maskedValue = '${refreshToken.substring(0, 8)}...***MASKED***';
+      if (maskedBody.containsKey('refreshToken')) {
+        maskedBody['refreshToken'] = maskedValue;
+      }
+      if (maskedBody.containsKey('refresh_token')) {
+        maskedBody['refresh_token'] = maskedValue;
       }
     }
 

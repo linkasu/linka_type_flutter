@@ -281,7 +281,7 @@ class AuthService {
       developer.log('Отправляю запрос на обновление токена');
 
       // Создаем запрос с refresh token в теле
-      final request = {'refreshToken': refreshToken};
+      final request = {'refresh_token': refreshToken};
       final response = await _apiClient.post('/refresh-token', body: request);
       developer.log('Получен ответ от сервера, парсинг данных');
 

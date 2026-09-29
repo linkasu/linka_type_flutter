@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'tts_cache_service.dart';
+import 'tts_installation_token_client.dart';
 
 class YandexVoice {
   final String voiceURI;
@@ -31,6 +32,10 @@ class TTSVoice {
 }
 
 class TTSService {
+  static const _installationTokensEnabled = bool.fromEnvironment(
+    'TTS_INSTALLATION_TOKENS_ENABLED',
+    defaultValue: false,
+  );
   static TTSService? _instance;
   static TTSService get instance {
     _instance ??= TTSService._();
@@ -44,6 +49,7 @@ class TTSService {
   }
 
   late SharedPreferences _prefs;
+  TTSInstallationTokenClient? _installationTokenClient;
 
   final StreamController<String> _eventController =
       StreamController<String>.broadcast();
@@ -67,6 +73,9 @@ class TTSService {
     if (_isInitialized) return;
 
     _prefs = await SharedPreferences.getInstance();
+    if (_installationTokensEnabled) {
+      _installationTokenClient = TTSInstallationTokenClient(_prefs);
+    }
 
     _useYandex = await getUseYandex();
     _currentVoice = await getSelectedVoice();
@@ -193,14 +202,7 @@ class TTSService {
       }
 
       // Загружаем от сервера
-      final response = await http.post(
-        Uri.parse('https://tts.linka.su/tts'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'text': text,
-          'voice': voice,
-        }),
-      );
+      final response = await _postTTS({'text': text, 'voice': voice});
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final bytes = response.bodyBytes;
@@ -567,6 +569,9 @@ class TTSService {
     String voice,
     Function(int current, int total) onProgress,
   ) async {
+    if (_installationTokensEnabled && _installationTokenClient == null) {
+      await _init();
+    }
     final cacheService = TTSCacheService.instance;
 
     for (int i = 0; i < phrases.length; i++) {
@@ -581,14 +586,7 @@ class TTSService {
 
       try {
         // Скачиваем и сохраняем в кеш
-        final response = await http.post(
-          Uri.parse('https://tts.linka.su/tts'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'text': text,
-            'voice': voice,
-          }),
-        );
+        final response = await _postTTS({'text': text, 'voice': voice});
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           await cacheService.saveToCache(cacheKey, response.bodyBytes);
@@ -598,6 +596,26 @@ class TTSService {
       }
 
       onProgress(i + 1, phrases.length);
+    }
+  }
+
+  Future<http.Response> _postTTS(Map<String, dynamic> body) async {
+    if (!_installationTokensEnabled) {
+      return http.post(
+        Uri.parse('https://tts.linka.su/tts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+    }
+
+    try {
+      return await _installationTokenClient!.post(body);
+    } on TTSInstallationCompatibilityException {
+      return http.post(
+        Uri.parse('https://tts.linka.su/tts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
     }
   }
 

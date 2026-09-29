@@ -22,8 +22,8 @@ class TTSInstallationTokenClient {
     this._prefs, {
     http.Client? client,
     DateTime Function()? now,
-  })  : _client = client ?? http.Client(),
-        _now = now ?? DateTime.now;
+  }) : _client = client ?? http.Client(),
+       _now = now ?? DateTime.now;
 
   Future<http.Response> post(Map<String, dynamic> body) async {
     final idempotencyKey = _newUuid();
@@ -79,7 +79,9 @@ class TTSInstallationTokenClient {
       throw const FormatException('Invalid TTS installation response');
     }
     final token = (payload['token'] as String?)?.trim();
-    final expiresAt = DateTime.tryParse(payload['expires_at']?.toString() ?? '');
+    final expiresAt = DateTime.tryParse(
+      payload['expires_at']?.toString() ?? '',
+    );
     if (token == null || token.isEmpty || expiresAt == null) {
       throw const FormatException('Invalid TTS installation response');
     }
@@ -117,8 +119,9 @@ class TTSInstallationTokenClient {
     final bytes = List<int>.generate(16, (_) => random.nextInt(256));
     bytes[6] = (bytes[6] & 0x0f) | 0x40;
     bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    final hex =
-        bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+    final hex = bytes
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
     return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
         '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }

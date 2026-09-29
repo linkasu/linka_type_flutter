@@ -41,8 +41,10 @@ void main() {
       now: () => currentTime,
     );
 
-    final response =
-        await tokenClient.post({'text': 'hello', 'voice': 'zahar'});
+    final response = await tokenClient.post({
+      'text': 'hello',
+      'voice': 'zahar',
+    });
 
     expect(response.statusCode, 200);
     expect(requests, hasLength(2));
@@ -53,8 +55,9 @@ void main() {
   test('uses a stored token until it enters the refresh window', () async {
     SharedPreferences.setMockInitialValues({
       'tts_installation_token': 'stored-token',
-      'tts_installation_token_expires_at':
-          currentTime.add(const Duration(hours: 25)).millisecondsSinceEpoch,
+      'tts_installation_token_expires_at': currentTime
+          .add(const Duration(hours: 25))
+          .millisecondsSinceEpoch,
     });
     final client = MockClient((request) async {
       expect(request.url.path, '/v1/tts/anonymous');
@@ -73,8 +76,9 @@ void main() {
   test('refreshes a token with less than 24 hours remaining', () async {
     SharedPreferences.setMockInitialValues({
       'tts_installation_token': 'expiring-token',
-      'tts_installation_token_expires_at':
-          currentTime.add(const Duration(hours: 23)).millisecondsSinceEpoch,
+      'tts_installation_token_expires_at': currentTime
+          .add(const Duration(hours: 23))
+          .millisecondsSinceEpoch,
     });
     final client = MockClient((request) async {
       if (request.url.path == '/v1/tts/installations') {
@@ -98,49 +102,55 @@ void main() {
     await tokenClient.post({'text': 'hello', 'voice': 'zahar'});
   });
 
-  test('retries one unauthorized anonymous request with the same idempotency key',
-      () async {
-    var bootstrapCount = 0;
-    final anonymousRequests = <http.Request>[];
-    final client = MockClient((request) async {
-      if (request.url.path == '/v1/tts/installations') {
-        bootstrapCount++;
-        return http.Response(
-          jsonEncode({
-            'token': bootstrapCount == 1 ? 'first-token' : 'second-token',
-            'expires_at': '2026-11-01T12:00:00Z',
-          }),
-          200,
-        );
-      }
-      anonymousRequests.add(request);
-      return http.Response.bytes(
-        [1],
-        anonymousRequests.length == 1 ? 401 : 200,
+  test(
+    'retries one unauthorized anonymous request with the same idempotency key',
+    () async {
+      var bootstrapCount = 0;
+      final anonymousRequests = <http.Request>[];
+      final client = MockClient((request) async {
+        if (request.url.path == '/v1/tts/installations') {
+          bootstrapCount++;
+          return http.Response(
+            jsonEncode({
+              'token': bootstrapCount == 1 ? 'first-token' : 'second-token',
+              'expires_at': '2026-11-01T12:00:00Z',
+            }),
+            200,
+          );
+        }
+        anonymousRequests.add(request);
+        return http.Response.bytes([
+          1,
+        ], anonymousRequests.length == 1 ? 401 : 200);
+      });
+      final tokenClient = TTSInstallationTokenClient(
+        await SharedPreferences.getInstance(),
+        client: client,
+        now: () => currentTime,
       );
-    });
-    final tokenClient = TTSInstallationTokenClient(
-      await SharedPreferences.getInstance(),
-      client: client,
-      now: () => currentTime,
-    );
 
-    final response =
-        await tokenClient.post({'text': 'hello', 'voice': 'zahar'});
+      final response = await tokenClient.post({
+        'text': 'hello',
+        'voice': 'zahar',
+      });
 
-    expect(response.statusCode, 200);
-    expect(bootstrapCount, 2);
-    expect(anonymousRequests, hasLength(2));
-    expect(
-      anonymousRequests.map((request) => request.headers['Idempotency-Key']),
-      everyElement(equals(anonymousRequests.first.headers['Idempotency-Key'])),
-    );
-    expect(
-      anonymousRequests
-          .map((request) => request.headers['X-TTS-Installation-Token']),
-      ['first-token', 'second-token'],
-    );
-  });
+      expect(response.statusCode, 200);
+      expect(bootstrapCount, 2);
+      expect(anonymousRequests, hasLength(2));
+      expect(
+        anonymousRequests.map((request) => request.headers['Idempotency-Key']),
+        everyElement(
+          equals(anonymousRequests.first.headers['Idempotency-Key']),
+        ),
+      );
+      expect(
+        anonymousRequests.map(
+          (request) => request.headers['X-TTS-Installation-Token'],
+        ),
+        ['first-token', 'second-token'],
+      );
+    },
+  );
 
   test('does not retry a second unauthorized response', () async {
     final responses = <int>[200, 401, 200, 401];
@@ -167,21 +177,24 @@ void main() {
     expect(responses, isEmpty);
   });
 
-  test('signals unsupported installation endpoints for direct compatibility', () async {
-    for (final status in [404, 501]) {
-      SharedPreferences.setMockInitialValues({});
-      final tokenClient = TTSInstallationTokenClient(
-        await SharedPreferences.getInstance(),
-        client: MockClient((_) async => http.Response('', status)),
-        now: () => currentTime,
-      );
+  test(
+    'signals unsupported installation endpoints for direct compatibility',
+    () async {
+      for (final status in [404, 501]) {
+        SharedPreferences.setMockInitialValues({});
+        final tokenClient = TTSInstallationTokenClient(
+          await SharedPreferences.getInstance(),
+          client: MockClient((_) async => http.Response('', status)),
+          now: () => currentTime,
+        );
 
-      await expectLater(
-        tokenClient.post({'text': 'hello'}),
-        throwsA(isA<TTSInstallationCompatibilityException>()),
-      );
-    }
-  });
+        await expectLater(
+          tokenClient.post({'text': 'hello'}),
+          throwsA(isA<TTSInstallationCompatibilityException>()),
+        );
+      }
+    },
+  );
 }
 
 final _uuid = RegExp(

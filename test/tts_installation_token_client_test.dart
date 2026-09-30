@@ -55,9 +55,8 @@ void main() {
   test('uses a stored token until it enters the refresh window', () async {
     SharedPreferences.setMockInitialValues({
       'tts_installation_token': 'stored-token',
-      'tts_installation_token_expires_at': currentTime
-          .add(const Duration(hours: 25))
-          .millisecondsSinceEpoch,
+      'tts_installation_token_expires_at':
+          currentTime.add(const Duration(hours: 25)).millisecondsSinceEpoch,
     });
     final client = MockClient((request) async {
       expect(request.url.path, '/v1/tts/anonymous');
@@ -76,9 +75,8 @@ void main() {
   test('refreshes a token with less than 24 hours remaining', () async {
     SharedPreferences.setMockInitialValues({
       'tts_installation_token': 'expiring-token',
-      'tts_installation_token_expires_at': currentTime
-          .add(const Duration(hours: 23))
-          .millisecondsSinceEpoch,
+      'tts_installation_token_expires_at':
+          currentTime.add(const Duration(hours: 23)).millisecondsSinceEpoch,
     });
     final client = MockClient((request) async {
       if (request.url.path == '/v1/tts/installations') {

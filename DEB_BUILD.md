@@ -103,7 +103,7 @@ DEB пакеты автоматически собираются при:
      --maintainer "aacidov <aacidov@example.com>" \
      --url "https://github.com/aacidov/linka_type_flutter" \
      --category office \
-     --license "MIT" \
+     --license "GPL-3.0-or-later" \
      --vendor "aacidov" \
      --architecture amd64 \
      --depends "libgtk-3-0" \
@@ -148,7 +148,7 @@ deb-package/
 - **Версия**: автоматически из pubspec.yaml
 - **Архитектура**: amd64
 - **Категория**: office
-- **Лицензия**: MIT
+- **Лицензия**: GPL-3.0-or-later
 - **Зависимости**: libgtk-3-0, libstdc++6
 - **Поддерживаемые дистрибутивы**: Ubuntu, Debian, Linux Mint и другие
 

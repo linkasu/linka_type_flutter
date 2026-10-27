@@ -227,7 +227,7 @@ jobs:
           --maintainer "aacidov <aacidov@example.com>" \
           --url "https://github.com/aacidov/linka_type_flutter" \
           --category office \
-          --license "MIT" \
+          --license "GPL-3.0-or-later" \
           --vendor "aacidov" \
           --architecture amd64 \
           --depends "libgtk-3-0" \
